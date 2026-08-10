@@ -1,9 +1,8 @@
-from flask import Flask, request, jsonify, session, render_template
+from flask import Flask, request, jsonify, session, render_template, send_from_directory
 import os
 import json
 
-# Ustawiamy template_folder='.', aby Flask szukał plików HTML w tym samym folderze, co server.py
-app = Flask(__name__, template_folder='.')
+app = Flask(__name__, template_folder='.', static_folder='.')
 app.secret_key = 'halogen_secure_secret_key'
 
 USERS_FILE = 'users.json'
@@ -22,10 +21,14 @@ def save_users(users):
     with open(USERS_FILE, 'w', encoding='utf-8') as f:
         json.dump(users, f, ensure_ascii=False, indent=4)
 
-# Ścieżka do strony głównej
 @app.route('/')
 def home():
     return render_template('index.html')
+
+# Specjalna ścieżka, żeby pliki CSS i obrazki ładnie się wczytywały z folderów
+@app.route('/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('.', filename)
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
