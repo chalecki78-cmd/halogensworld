@@ -1,8 +1,9 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, session, render_template
 import os
 import json
 
-app = Flask(__name__)
+# Ustawiamy template_folder='.', aby Flask szukał plików HTML w tym samym folderze, co server.py
+app = Flask(__name__, template_folder='.')
 app.secret_key = 'halogen_secure_secret_key'
 
 USERS_FILE = 'users.json'
@@ -20,6 +21,11 @@ def load_users():
 def save_users(users):
     with open(USERS_FILE, 'w', encoding='utf-8') as f:
         json.dump(users, f, ensure_ascii=False, indent=4)
+
+# Ścieżka do strony głównej
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
