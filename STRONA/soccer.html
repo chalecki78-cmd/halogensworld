@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pl" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="google" content="notranslate">
+    <title>Soccer Battle - System Halogen AI</title>
+    <style>
+        body {
+            margin: 0; padding: 0; height: 100vh; width: 100vw; background: #020807;
+            display: flex; justify-content: center; align-items: center; overflow: hidden;
+            font-family: 'Courier New', Courier, monospace; position: relative;
+        }
+        .game-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .game-bg { width: 100%; height: 100%; object-fit: fill; display: block; }
+
+        /* KOMUNIKAT "OBRÓĆ URZĄDZENIE" - domyślnie ukryty */
+        .rotate-hint {
+            display: none;
+        }
+
+        /* TELEFON W PIONIE - blokujemy widok i prosimy o obrót */
+        @media (max-width: 768px) and (orientation: portrait) {
+            body > *:not(.rotate-hint) {
+                display: none !important;
+            }
+
+            .rotate-hint {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                text-align: center;
+                font-family: 'Courier New', Courier, monospace;
+                color: #00ffcc;
+                padding: 20px;
+                box-sizing: border-box;
+                font-size: 14px;
+                line-height: 1.6;
+                letter-spacing: 1px;
+                background: #020807;
+            }
+        }
+
+        /* BAZOWE STYLE HOTSPOTÓW */
+        .hotspot {
+            position: absolute; background: transparent;
+            border: none; cursor: pointer; z-index: 50;
+            display: flex; justify-content: center; align-items: center;
+            color: #ffffff; font-weight: bold; text-align: center;
+            transition: color 0.2s ease, text-shadow 0.2s ease;
+            text-shadow: 0 0 4px #000, 0 0 8px #000, 0 0 12px #00ffcc;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+            padding: 0 4px;
+            box-sizing: border-box;
+            font-size: 1.15vw;
+        }
+        .hotspot:hover { color: #00ffcc; text-shadow: 0 0 8px #00ffcc, 0 0 15px #00ffcc; }
+
+        .lang-btn {
+            position: absolute;
+            top: 1.6%;
+            right: 18%;
+            background: rgba(0, 10, 10, 0.85);
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            padding: 0.3vw 0.8vw;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9vw;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 2px;
+            z-index: 100;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .lang-btn:hover {
+            background: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 8px #00ffcc;
+        }
+
+        .hs-zaloguj     { right: 0%;    top: 1.20%;  width: 16.35%; height: 10.60%; }
+        .hs-giorny-lewy { left: 4.0%;   top: 1.80%;  width: 20.10%; height: 11.80%; }
+        .hs-drugie      { left: 26.66%; top: 1.80%;  width: 8.40%;  height: 11.80%; }
+        .hs-trzecie     { left: 3.0%;   top: 14.10%; width: 18.20%; height: 9.90%;  }
+        .hs-czwarte     { left: 24.0%;  top: 14.10%; width: 8.40%;  height: 9.90%;  }
+        .hs-piate       { left: 2.42%;   top: 22.40%; width: 16.70%; height: 9.90%;  font-size: 1vw; }
+    </style>
+</head>
+<body>
+
+    <div class="rotate-hint">
+        OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ<br>
+        [ ROTATE DEVICE TO CONTINUE ]
+    </div>
+
+    <div class="game-container">
+        <img src="img/soccer_battle_tlo.jpg" alt="Soccer Battle Tło" class="game-bg">
+
+        <button class="lang-btn" id="lang-toggle-btn" onclick="toggleLanguage()">[ EN ]</button>
+
+        <div class="hotspot hs-zaloguj" onclick="handleAccountClick()">
+            <span id="t-konto">KONTO: GUEST</span>
+        </div>
+
+        <a href="filmy.html" class="hotspot hs-giorny-lewy">
+            <span id="t-filmy">FILMY</span>
+        </a>
+
+        <a href="index.html" class="hotspot hs-drugie">
+            <span id="t-home">STRONA GLOWNA</span>
+        </a>
+
+        <div class="hotspot hs-trzecie" onclick="handleTipsClick()">
+            <span id="t-tips">TIPS</span>
+        </div>
+
+        <div class="hotspot hs-czwarte" onclick="handleChatClick()">
+            <span id="t-chat">CHAT</span>
+        </div>
+
+        <div class="hotspot hs-piate" onclick="handleSchoolClick()">
+            <span id="t-school">HALOGEN SCHOOL</span>
+        </div>
+    </div>
+
+    <script>
+        let currentLang = localStorage.getItem('halogen_lang') || 'pl';
+        let loggedUser = localStorage.getItem('halogen_logged_user') || "GUEST";
+
+        const translations = {
+            pl: {
+                langBtn: "[ EN ]",
+                konto: "KONTO: ",
+                filmy: "FILMY",
+                home: "STRONA GLOWNA",
+                tips: "TIPS",
+                chat: "CHAT",
+                school: "HALOGEN SCHOOL",
+                msgTips: "Porady i triki - Już wkrótce!",
+                msgChat: "Chat - Już wkrótce!",
+                msgSchool: "Halogen School - Już wkrótce!",
+                confirmLogout: "Czy chcesz się wylogować?"
+            },
+            en: {
+                langBtn: "[ PL ]",
+                konto: "ACCOUNT: ",
+                filmy: "MOVIES",
+                home: "MAIN MENU",
+                tips: "TIPS",
+                chat: "CHAT",
+                school: "HALOGEN SCHOOL",
+                msgTips: "Tips and tricks - Coming soon!",
+                msgChat: "Opening community chat - Coming soon!",
+                msgSchool: "Halogen School - Coming soon!",
+                confirmLogout: "Do you want to log out?"
+            }
+        };
+
+        async function fetchSession() {
+            let activeUser = localStorage.getItem('halogen_logged_user') || "GUEST";
+            
+            try {
+                const response = await fetch('/api/session');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.user) {
+                        activeUser = data.user;
+                        if (activeUser !== "GUEST") {
+                            localStorage.setItem('halogen_logged_user', activeUser);
+                        } else {
+                            localStorage.removeItem('halogen_logged_user');
+                        }
+                    }
+                }
+            } catch (e) {
+                // Brak połączenia z serwerem, używamy localStorage
+            }
+
+            loggedUser = activeUser;
+            updateAccountDisplay();
+        }
+
+        function updateAccountDisplay() {
+            const t = translations[currentLang];
+            const kontoEl = document.getElementById('t-konto');
+            if (kontoEl) {
+                kontoEl.innerText = t.konto + loggedUser.toUpperCase();
+            }
+        }
+
+        function applyLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('halogen_lang', lang);
+            const t = translations[lang];
+
+            document.getElementById('lang-toggle-btn').innerText = t.langBtn;
+            document.getElementById('t-filmy').innerText = t.filmy;
+            document.getElementById('t-home').innerText = t.home;
+            document.getElementById('t-tips').innerText = t.tips;
+            document.getElementById('t-chat').innerText = t.chat;
+            document.getElementById('t-school').innerText = t.school;
+            document.documentElement.lang = lang;
+            
+            updateAccountDisplay();
+        }
+
+        function toggleLanguage() {
+            const newLang = currentLang === 'pl' ? 'en' : 'pl';
+            applyLanguage(newLang);
+        }
+
+        function handleAccountClick() {
+            if (loggedUser && loggedUser !== "GUEST") {
+                if (confirm(translations[currentLang].confirmLogout)) {
+                    localStorage.removeItem('halogen_logged_user');
+                    loggedUser = "GUEST";
+                    updateAccountDisplay();
+                    fetch('/api/logout', { method: 'POST' }).catch(() => {});
+                }
+            } else {
+                // Zapisujemy aktualną stronę jako cel powrotu po zalogowaniu (zamiast wyrzucać na główną)
+                localStorage.setItem('halogen_redirect_after_login', window.location.pathname.split('/').pop() || 'soccer.html');
+                window.location.href = "login.html";
+            }
+        }
+
+        function handleTipsClick() {
+            alert(translations[currentLang].msgTips);
+        }
+        function handleChatClick() {
+            alert(translations[currentLang].msgChat);
+        }
+        function handleSchoolClick() {
+            alert(translations[currentLang].msgSchool);
+        }
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'halogen_lang' && event.newValue) {
+                applyLanguage(event.newValue);
+            }
+            if (event.key === 'halogen_logged_user') {
+                loggedUser = event.newValue || "GUEST";
+                updateAccountDisplay();
+            }
+        });
+
+        window.onload = () => {
+            applyLanguage(currentLang);
+            updateAccountDisplay();
+            fetchSession();
+        };
+    </script>
+</body>
+</html>
