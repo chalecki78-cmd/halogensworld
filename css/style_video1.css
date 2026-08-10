@@ -1,0 +1,200 @@
+/* STYL DLA STRONY WIDEO - OSOBNY PLIK */
+
+/* Reset i podstawowe ustawienia */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Courier New', Courier, monospace; /* Zachowujemy czcionkę */
+    overflow: hidden; /* Zapobiega paskom przewijania strony */
+}
+
+/* Tło - to samo, co w soccer.html */
+.game-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../img/soccer%20battle%20tlo1.jpg'); /* Ścieżka do tła */
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.3); /* Ciemniejsze tło niż w grze, żeby tekst był czytelny */
+    z-index: -1;
+}
+
+/* Główny kontener */
+.video-page-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%; /* Używamy pełnej szerokości na telefonie */
+    max-width: 1200px; /* Ograniczenie szerokości na dużych ekranach */
+    margin: 0 auto;
+    color: #00ffcc;
+    padding: 20px 15px; /* Dodajemy bezpieczne marginesy po bokach, żeby tekst nie dotykał krawędzi ekranu */
+    box-sizing: border-box;
+}
+
+/* Nagłówek i wyszukiwarka */
+.video-header {
+    flex: 0 0 auto;
+    padding: 20px 0;
+    border-bottom: 1px dashed #00ffcc;
+    margin-bottom: 20px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.video-title {
+    font-size: 24px;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.back-btn {
+    background: transparent;
+    border: 1px solid #ff4444;
+    color: #ff4444;
+    padding: 8px 16px;
+    text-decoration: none;
+    font-size: 12px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: #ff4444;
+    color: #000;
+    box-shadow: 0 0 10px #ff4444;
+}
+
+/* Wyszukiwarka */
+.search-bar-container {
+    width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #00ffcc;
+    color: #00ffcc;
+    padding: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+    border-radius: 4px;
+}
+
+.search-input::placeholder {
+    color: rgba(0, 255, 204, 0.5);
+}
+
+/* Lista filmów (kontener z przewijaniem) */
+.video-list-wrapper {
+    flex: 1 1 auto;
+    overflow-y: auto; /* Włącza przewijanie listy */
+    padding-right: 10px; /* Dla estetyki paska przewijania */
+}
+
+.video-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Pojedynczy element filmu */
+.video-item {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 10, 10, 0.8); /* Ciemne tło kafelka */
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    border-radius: 4px;
+    padding: 10px;
+    transition: all 0.3s ease;
+}
+
+.video-item:hover {
+    border-color: #00ffcc;
+    background: rgba(0, 20, 20, 0.9);
+    transform: translateX(5px); /* Delikatny efekt po najechaniu */
+}
+
+/* Miniaturka (placeholder) */
+.video-thumbnail-placeholder {
+    width: 120px;
+    height: 68px; /* Proporcje 16:9 */
+    background-color: #000;
+    border: 1px solid #00ffcc;
+    border-radius: 2px;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #00ffcc;
+    font-size: 10px;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.video-thumbnail-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+}
+
+.video-duration {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 1px 3px;
+    font-size: 9px;
+    border-radius: 2px;
+}
+
+/* Informacje o filmie */
+.video-info {
+    flex: 1;
+}
+
+.video-item-title {
+    font-size: 16px;
+    margin: 0 0 5px 0;
+    color: #fff;
+}
+
+.video-item-desc {
+    font-size: 10px;
+    margin: 0;
+    color: #88ffdd;
+    line-height: 1.4;
+}
+
+/* Przycisk oglądaj */
+.watch-btn {
+    background: transparent;
+    border: 1px solid #00ffcc;
+    color: #00ffcc;
+    padding: 6px 12px;
+    text-decoration: none;
+    font-size: 11px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    margin-left: 15px;
+    flex-shrink: 0;
+}
+
+.watch-btn:hover {
+    background: #00ffcc;
+    color: #000;
+    box-shadow: 0 0 10px #00ffcc;
+}
