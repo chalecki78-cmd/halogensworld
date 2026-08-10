@@ -1,100 +1,68 @@
-import http.server
-import json
+from flask import Flask, request, jsonify, session
 import os
-import socketserver
+import json
 
-PORT = 8000
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SESSION_FILE = os.path.join(BASE_DIR, "current_session.json")
-USERS_FILE = os.path.join(BASE_DIR, "users.json")
+app = Flask(__name__)
+app.secret_key = 'halogen_secure_secret_key'
 
+USERS_FILE = 'users.json'
+SESSION_FILE = 'current_session.json'
 
 def load_users():
-  if os.path.exists(USERS_FILE):
+    if not os.path.exists(USERS_FILE):
+        return {}
     try:
-      with open(USERS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+        with open(USERS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
     except:
-      return {}
-  return {}
-
+        return {}
 
 def save_users(users):
-  with open(USERS_FILE, "w", encoding="utf-8") as f:
-    json.dump(users, f, indent=4)
+    with open(USERS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(users, f, ensure_ascii=False, indent=4)
 
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json()
+    username = data.get('user', '').strip()
+    password = data.get('pass', '')
 
-class JetsonHandler(http.server.SimpleHTTPRequestHandler):
+    users = load_users()
 
-  def do_POST(self):
-    content_length = int(self.headers.get("Content-Length", 0))
-    post_data = self.rfile.read(content_length)
+    if username in users and users[username] == password:
+        session['user'] = username
+        return jsonify({'status': 'success', 'user': username})
+    
+    return jsonify({'status': 'error', 'message': 'Invalid credentials'}), 401
 
-    try:
-      data = json.loads(post_data.decode("utf-8"))
-    except:
-      data = {}
+@app.route('/api/register', methods=['POST'])
+def api_register():
+    data = request.get_json()
+    username = data.get('user', '').strip()
+    password = data.get('pass', '')
 
-    # Obsługa logowania / rejestracji / sesji
-    if self.path == "/api/session":
-      username = data.get("user", "GUEST")
-      with open(SESSION_FILE, "w", encoding="utf-8") as f:
-        json.dump({"logged_user": username}, f, indent=4)
+    if not username or not password:
+        return jsonify({'status': 'error', 'message': 'Empty fields'}), 400
 
-      self.send_response(200)
-      self.send_header("Content-Type", "application/json")
-      self.end_headers()
-      self.wfile.write(
-          json.dumps({"status": "success", "user": username}).encode("utf-8")
-      )
+    users = load_users()
 
-    elif self.path == "/api/register":
-      username = data.get("user", "").strip()
-      password = data.get("pass", "")
+    if username in users:
+        return jsonify({'status': 'error', 'message': 'exists'})
 
-      users = load_users()
-      if not username or not password:
-        res = {"status": "error", "message": "empty"}
-      elif username in users:
-        res = {"status": "error", "message": "exists"}
-      else:
-        users[username] = password
-        save_users(users)
-        res = {"status": "success"}
+    users[username] = password
+    save_users(users)
 
-      self.send_response(200)
-      self.send_header("Content-Type", "application/json")
-      self.end_headers()
-      self.wfile.write(json.dumps(res).encode("utf-8"))
+    return jsonify({'status': 'success'})
 
-    elif self.path == "/api/login":
-      username = data.get("user", "").strip()
-      password = data.get("pass", "")
+@app.route('/api/session', methods=['POST'])
+def api_session():
+    data = request.get_json()
+    username = data.get('user')
+    if username:
+        with open(SESSION_FILE, 'w', encoding='utf-8') as f:
+            json.dump({'logged_user': username}, f, ensure_ascii=False, indent=4)
+        return jsonify({'status': 'success'})
+    return jsonify({'status': 'error'}), 400
 
-      users = load_users()
-      if username in users and users[username] == password:
-        res = {"status": "success", "user": username}
-      else:
-        res = {"status": "error", "message": "invalid"}
-
-      self.send_response(200)
-      self.send_header("Content-Type", "application/json")
-      self.end_headers()
-      self.wfile.write(json.dumps(res).encode("utf-8"))
-
-    else:
-      self.send_response(404)
-      self.end_headers()
-
-
-if __name__ == "__main__":
-  # Czyszczenie starej sesji przy starcie serwera
-  if os.path.exists(SESSION_FILE):
-    os.remove(SESSION_FILE)
-
-  print(f"Serwer Jetson uruchomiony na porcie {PORT}")
-  with socketserver.TCPServer(("", PORT), JetsonHandler) as httpd:
-    try:
-      httpd.serve_forever()
-    except KeyboardInterrupt:
-      pass
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
