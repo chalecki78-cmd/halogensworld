@@ -602,8 +602,12 @@
 
             socket.on('new_message', function(msgData) {
                 const messagesDiv = document.getElementById('chat-messages');
-                messagesDiv.innerHTML += `<div><b>${msgData.user}:</b> ${msgData.msg}</div>`;
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                const currentUser = localStorage.getItem('halogen_logged_user') || 'HALOGEN';
+                // Wyświetlamy tylko wiadomości od innych użytkowników (nasze dają natychmiastowy podgląd)
+                if (msgData.user !== currentUser) {
+                    messagesDiv.innerHTML += `<div><b>${msgData.user}:</b> ${msgData.msg}</div>`;
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                }
             });
             socketInitialized = true;
         }
@@ -643,11 +647,21 @@
 
         function sendChatMessage() {
             const input = document.getElementById('chat-input');
-            if (input.value.trim() !== '' && socket) {
+            const msgText = input.value.trim();
+            if (msgText !== '' && socket) {
                 const path = window.location.pathname.split('/').pop().replace('.html', '');
                 const room = (path === '' || path === '/') ? 'global' : path;
-                
-                socket.emit('chat_msg', { room: room, msg: input.value });
+                const currentUser = localStorage.getItem('halogen_logged_user') || 'HALOGEN';
+
+                // Natychmiastowe wyświetlenie wiadomości u siebie w oknie
+                const messagesDiv = document.getElementById('chat-messages');
+                messagesDiv.innerHTML += `<div><b>${currentUser}:</b> ${msgText}</div>`;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+                // Wysłanie zdarzenia przez Socket.IO do serwera
+                socket.emit('message', { room: room, msg: msgText, user: currentUser });
+                socket.emit('chat_msg', { room: room, msg: msgText, user: currentUser });
+
                 input.value = '';
             }
         }
