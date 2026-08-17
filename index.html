@@ -594,7 +594,6 @@
         // --- OBSŁUGA CZATU SOCKET.IO ---
         function initChatSocket() {
             if (socketInitialized) return;
-            // Jawne określenie transportów zapobiega zrywaniu połączeń na chmurach (np. Render)
             socket = io({
                 transports: ['websocket', 'polling']
             });
@@ -603,14 +602,11 @@
 
             socket.emit('join', { room: room });
 
+            // Odbieramy wiadomości od serwera (wszystkie, również nasze własne wracające z serwera)
             socket.on('new_message', function(msgData) {
                 const messagesDiv = document.getElementById('chat-messages');
-                const currentUser = localStorage.getItem('halogen_logged_user') || 'HALOGEN';
-                // Wyświetlamy wiadomości od innych użytkowników (lub powrotne z serwera, jeśli nie były zdublowane)
-                if (msgData.user !== currentUser) {
-                    messagesDiv.innerHTML += `<div><b>${msgData.user}:</b> ${msgData.msg}</div>`;
-                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-                }
+                messagesDiv.innerHTML += `<div><b>${msgData.user}:</b> ${msgData.msg}</div>`;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
             });
             socketInitialized = true;
         }
@@ -656,12 +652,8 @@
                 const room = (path === '' || path === '/') ? 'global' : path;
                 const currentUser = localStorage.getItem('halogen_logged_user') || 'HALOGEN';
 
-                // Natychmiastowe lokalne wyświetlenie wiadomości u siebie
-                const messagesDiv = document.getElementById('chat-messages');
-                messagesDiv.innerHTML += `<div><b>${currentUser}:</b> ${msgText}</div>`;
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-                // Wysłanie zdarzenia przez Socket.IO do serwera
+                // Wysyłamy wiadomość na serwer. Serwer rozesle ją do wszystkich (w tym do nas),
+                // dzięki czemu pojawi się na czacie tylko raz, obsłużona przez zdarzenie 'new_message'.
                 socket.emit('chat_msg', { room: room, msg: msgText, user: currentUser });
 
                 input.value = '';
