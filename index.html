@@ -9,7 +9,7 @@
             margin: 0; 
             padding: 0; 
             min-height: 100vh; 
-            background-image: url('IMG/strona_startowa_tlo.png'); 
+            background-image: url('strona_startowa_tlo.png'); 
             background-size: cover; 
             background-position: center; 
             background-repeat: no-repeat; 
@@ -58,8 +58,8 @@
     </div>
 
     <div class="monitor-screen">
-        <a href="soccer.html" class="monitor-frame"><img src="IMG/soccer_battle_tlo1.jpg" alt="Soccer"></a>
-        <a href="carx.html" class="monitor-frame"><img src="IMG/carx_tlo.jpg" alt="CarX"></a>
+        <a href="soccer.html" class="monitor-frame"><img src="soccer_battle_tlo1.jpg" alt="Soccer"></a>
+        <a href="carx.html" class="monitor-frame"><img src="carx_tlo.jpg" alt="CarX"></a>
     </div>
 
     <div id="halogen-chat-container" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 320px; height: 400px; background: #0a0a0a; border: 2px solid #00ffcc; z-index: 9999; flex-direction: column; will-change: transform;">
@@ -110,7 +110,6 @@
             initChatSocket();
             checkLoginStatus();
 
-            // Bezpośrednie nasłuchiwanie klawisza Enter w inpucie
             const chatInput = document.getElementById('chat-input');
             if (chatInput) {
                 chatInput.addEventListener('keydown', function(event) {
@@ -127,7 +126,6 @@
             const chatBox = document.getElementById('halogen-chat-container');
             if (chatBox.style.display === 'none' || chatBox.style.display === '') {
                 chatBox.style.display = 'flex';
-                // Automatyczne skupienie na polu tekstowym po otwarciu czatu
                 setTimeout(() => {
                     const input = document.getElementById('chat-input');
                     if (input) input.focus();
@@ -191,7 +189,7 @@
                 logoutBtn.style.display = 'inline-block';
             } else {
                 loginBtn.textContent = '[ KONTO: GUEST ]';
-                logoutBtn.style.display = 'none';
+                loginBtn.style.display = 'none';
             }
         }
 
