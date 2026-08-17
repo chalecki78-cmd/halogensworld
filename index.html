@@ -7,9 +7,11 @@
     <style>
         body { 
             margin: 0; padding: 0; min-height: 100vh; 
-            background-image: url('IMG/strona_startowa_tlo.png'); 
-            background-size: cover; background-position: center; background-repeat: no-repeat; 
-            font-family: 'Courier New', Courier, monospace; color: #00ffcc; overflow: hidden; 
+            background: #000 url('IMG/strona_startowa_tlo.png') no-repeat center center fixed; 
+            background-size: cover; 
+            font-family: 'Courier New', Courier, monospace; color: #00ffcc; 
+            overflow: hidden;
+            will-change: background-image;
             -webkit-font-smoothing: antialiased;
         }
         .rotate-hint { display: none; }
@@ -35,14 +37,15 @@
             height: 18%; 
             transform: rotate(5deg); 
             display: flex; 
-            gap: 4px; 
-            clip-path: polygon(1.93% 9.98%, 100% 0%, 98.39% 100%, 0% 85.54%); 
+            gap: 10px; 
+            align-items: stretch;
+            justify-content: center;
         }
 
-        /* Wersja mobilna: ekstremalnie mocne obniżenie na sam dół (top: 85%) */
+        /* Wersja mobilna: zakotwiczenie kafelków nisko na ekranie telefonu */
         @media (max-width: 768px) {
             .monitor-screen {
-                top: 85% !important; 
+                top: 78% !important; 
                 left: 10% !important;
                 width: 80% !important;
                 height: 14% !important;
@@ -50,8 +53,20 @@
             }
         }
 
-        .monitor-frame { flex: 1; border: 1px solid rgba(0, 255, 204, 0.5); background: #000; cursor: pointer; position: relative; }
-        .monitor-frame img { width: 100%; height: 100%; object-fit: cover; }
+        .monitor-frame { 
+            flex: 1; 
+            border: 1px solid rgba(0, 255, 204, 0.5); 
+            background: #000; 
+            cursor: pointer; 
+            overflow: hidden;
+        }
+        
+        .monitor-frame img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            content-visibility: auto;
+        }
         
         #halogen-chat-container {
             display: none; 
