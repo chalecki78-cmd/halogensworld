@@ -594,7 +594,10 @@
         // --- OBSŁUGA CZATU SOCKET.IO ---
         function initChatSocket() {
             if (socketInitialized) return;
-            socket = io();
+            // Jawne określenie transportów zapobiega zrywaniu połączeń na chmurach (np. Render)
+            socket = io({
+                transports: ['websocket', 'polling']
+            });
             const path = window.location.pathname.split('/').pop().replace('.html', '');
             const room = (path === '' || path === '/') ? 'global' : path;
 
@@ -603,7 +606,7 @@
             socket.on('new_message', function(msgData) {
                 const messagesDiv = document.getElementById('chat-messages');
                 const currentUser = localStorage.getItem('halogen_logged_user') || 'HALOGEN';
-                // Wyświetlamy tylko wiadomości od innych użytkowników (nasze dają natychmiastowy podgląd)
+                // Wyświetlamy wiadomości od innych użytkowników (lub powrotne z serwera, jeśli nie były zdublowane)
                 if (msgData.user !== currentUser) {
                     messagesDiv.innerHTML += `<div><b>${msgData.user}:</b> ${msgData.msg}</div>`;
                     messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -653,13 +656,12 @@
                 const room = (path === '' || path === '/') ? 'global' : path;
                 const currentUser = localStorage.getItem('halogen_logged_user') || 'HALOGEN';
 
-                // Natychmiastowe wyświetlenie wiadomości u siebie w oknie
+                // Natychmiastowe lokalne wyświetlenie wiadomości u siebie
                 const messagesDiv = document.getElementById('chat-messages');
                 messagesDiv.innerHTML += `<div><b>${currentUser}:</b> ${msgText}</div>`;
                 messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
                 // Wysłanie zdarzenia przez Socket.IO do serwera
-                socket.emit('message', { room: room, msg: msgText, user: currentUser });
                 socket.emit('chat_msg', { room: room, msg: msgText, user: currentUser });
 
                 input.value = '';
