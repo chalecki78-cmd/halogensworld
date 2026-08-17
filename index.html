@@ -6,10 +6,11 @@
     <title>Jetson Hub - System Halogen AI</title>
     <style>
         body { 
-            margin: 0; padding: 0; min-height: 100vh; 
-            background: #000 url('IMG/strona_startowa_tlo.png') no-repeat center center fixed; 
+            margin: 0; padding: 0; width: 100vw; height: 100vh; 
+            background: #000 url('IMG/strona_startowa_tlo.png') no-repeat center center; 
             background-size: cover; 
             font-family: 'Courier New', Courier, monospace; color: #00ffcc; 
+            overflow: hidden;
             -webkit-font-smoothing: antialiased;
         }
         .rotate-hint { display: none; }
@@ -26,7 +27,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #050b0b; border: 2px solid #00ffcc; padding: 25px; width: 320px; border-radius: 6px; }
         
-        /* Domyślny układ (Desktop) */
+        /* DOMYŚLNIE (DESKTOP) */
         .monitor-screen { 
             position: absolute; 
             top: 43%; 
@@ -40,30 +41,25 @@
             justify-content: center;
         }
 
-        /* UKŁAD DLA TABLETÓW (szerokość od 769px do 1024px) */
+        /* TABLETY (pełny ekran, dostosowane współrzędne absolutne) */
         @media (min-width: 769px) and (max-width: 1024px) {
             .monitor-screen {
-                top: 55% !important; 
-                left: 35% !important;
-                width: 45% !important;
-                height: 15% !important;
+                top: 50% !important; 
+                left: 30% !important;
+                width: 40% !important;
+                height: 14% !important;
                 transform: rotate(5deg) !important;
             }
         }
 
-        /* UKŁAD DLA SMARTFONÓW (szerokość do 768px) */
+        /* TELEFONY (pełny ekran, dostosowane współrzędne absolutne) */
         @media (max-width: 768px) {
-            body {
-                overflow-y: auto !important;
-            }
             .monitor-screen {
-                position: relative !important;
-                top: auto !important;
-                left: auto !important;
-                margin: 75vh auto 30px auto !important; 
-                width: 80% !important;
-                height: 120px !important;
-                transform: none !important;
+                top: 65% !important; 
+                left: 15% !important;
+                width: 70% !important;
+                height: 12% !important;
+                transform: rotate(5deg) !important;
             }
         }
 
