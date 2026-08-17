@@ -39,12 +39,13 @@
             clip-path: polygon(1.93% 9.98%, 100% 0%, 98.39% 100%, 0% 85.54%); 
         }
 
-        /* Przesunięcie kafelków niżej w wersji mobilnej */
+        /* Przesunięcie kafelków niżej w wersji mobilnej z pełnym wymuszeniem */
         @media (max-width: 768px) {
             .monitor-screen {
-                top: 80% !important; 
-                left: 15% !important;
-                width: 70% !important;
+                position: absolute !important;
+                top: 85% !important; /* Możesz zmienić tę wartość (np. na 88% lub 90%), jeśli chcesz jeszcze niżej */
+                left: 10% !important;
+                width: 80% !important;
                 height: 15% !important;
                 transform: none !important; 
                 clip-path: none !important;
