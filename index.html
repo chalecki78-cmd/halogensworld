@@ -83,7 +83,11 @@
             if (socket && socket.connected) return;
             
             socket = io({
-                transports: ['websocket', 'polling']
+                transports: ['websocket'],
+                reconnection: true,
+                reconnectionAttempts: Infinity,
+                reconnectionDelay: 500,
+                timeout: 10000
             });
 
             socket.on('connect', () => {
@@ -162,7 +166,7 @@
                 logoutBtn.style.display = 'inline-block';
             } else {
                 loginBtn.textContent = '[ KONTO: GUEST ]';
-                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'none';
             }
         }
 
