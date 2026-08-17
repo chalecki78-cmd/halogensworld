@@ -26,7 +26,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #050b0b; border: 2px solid #00ffcc; padding: 25px; width: 320px; border-radius: 6px; }
         
-        /* Kafelki / ekrany monitorów – domyślnie (desktop) */
+        /* Kafelki dla DESKTOPU */
         .monitor-screen { 
             position: absolute; 
             top: 43%; 
@@ -39,20 +39,21 @@
             clip-path: polygon(1.93% 9.98%, 100% 0%, 98.39% 100%, 0% 85.54%); 
         }
 
-        /* Przesunięcie kafelków niżej w wersji mobilnej / mniejszych ekranach */
+        /* Domyślnie ukrywamy wersję mobilną na komputerach */
+        .mobile-monitors { display: none; }
+
+        /* Kafelki dla TELEFONU / WĄSKICH EKRANÓW */
         @media (max-width: 1024px) {
-            body {
-                overflow: auto !important;
-            }
-            .monitor-screen {
-                position: relative !important;
-                margin: 60vh auto 20px auto !important;
-                left: auto !important;
-                top: auto !important;
-                width: 80% !important;
-                height: 120px !important;
-                transform: none !important; 
-                clip-path: none !important;
+            body { overflow: auto !important; }
+            .monitor-screen { display: none !important; } /* Ukrywamy desktopowe kafelki */
+            
+            .mobile-monitors {
+                display: flex !important;
+                justify-content: center;
+                gap: 10px;
+                width: 90%;
+                margin: 70vh auto 30px auto; /* Pozycja niżej na ekranie telefonu */
+                height: 90px;
             }
         }
 
@@ -108,7 +109,14 @@
         </div>
     </div>
 
+    <!-- Wersja kafelków na komputer (Desktop) -->
     <div class="monitor-screen">
+        <a href="soccer.html" class="monitor-frame"><img src="IMG/soccer_battle_tlo1.jpg" alt="Soccer"></a>
+        <a href="carx.html" class="monitor-frame"><img src="IMG/carx_tlo.jpg" alt="CarX"></a>
+    </div>
+
+    <!-- Wersja kafelków na telefon (Mobile - pojawia się automatycznie na małych ekranach) -->
+    <div class="mobile-monitors">
         <a href="soccer.html" class="monitor-frame"><img src="IMG/soccer_battle_tlo1.jpg" alt="Soccer"></a>
         <a href="carx.html" class="monitor-frame"><img src="IMG/carx_tlo.jpg" alt="CarX"></a>
     </div>
