@@ -7,23 +7,40 @@
     <style>
         body { 
             margin: 0; padding: 0; width: 100vw; height: 100vh; 
-            background: #000 url('IMG/strona_startowa_tlo.png') no-repeat center center; 
-            background-size: cover; 
+            background: #000;
             font-family: 'Courier New', Courier, monospace; color: #00ffcc; 
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
+            position: fixed; /* Blokuje jakiekolwiek przesuwanie się strony na mobile */
         }
+
+        /* WSPÓLNA WARSTWA TŁA I KAFELKÓW (Zablokowana razem) */
+        .app-viewport {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('IMG/strona_startowa_tlo.png');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+        }
+
         .rotate-hint { display: none; }
         @media (max-width: 768px) and (orientation: portrait) {
             body > *:not(.rotate-hint):not(#halogen-chat-container) { display: none !important; }
             .rotate-hint { display: flex; align-items: center; justify-content: center; height: 100vh; text-align: center; color: #00ffcc; padding: 20px; font-size: 14px; }
         }
+        
         .top-left-chat-label { position: absolute; top: 25px; left: 35px; border: 1px solid #00ffcc; color: #00ffcc; padding: 3px 8px; font-size: 9px; font-weight: bold; border-radius: 2px; z-index: 100; cursor: pointer; background: rgba(0, 10, 10, 0.85); text-decoration: none; }
         .top-left-chat-label:hover { background: #00ffcc; color: #000; }
+        
         .system-auth-bar { position: absolute; top: 25px; right: 35px; display: flex; align-items: center; gap: 10px; font-size: 10px; color: #00ffcc; z-index: 100; background: rgba(0, 10, 10, 0.85); padding: 6px 12px; border: 1px solid rgba(0, 255, 204, 0.4); border-radius: 4px; }
         .status-dot { width: 6px; height: 6px; background-color: #00ffcc; border-radius: 50%; box-shadow: 0 0 4px #00ffcc; }
         .auth-btn, .help-btn, .logout-btn, .lang-btn { background: transparent; border: 1px solid #00ffcc; color: #00ffcc; padding: 3px 8px; font-size: 9px; cursor: pointer; border-radius: 2px; }
         .logout-btn { border-color: #ff4444; color: #ff4444; }
+        
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #050b0b; border: 2px solid #00ffcc; padding: 25px; width: 320px; border-radius: 6px; }
         
@@ -41,7 +58,7 @@
             justify-content: center;
         }
 
-        /* TABLETY (pełny ekran, dostosowane współrzędne absolutne) */
+        /* TABLETY */
         @media (min-width: 769px) and (max-width: 1024px) {
             .monitor-screen {
                 top: 50% !important; 
@@ -52,7 +69,7 @@
             }
         }
 
-        /* TELEFONY (pełny ekran, dostosowane współrzędne absolutne) */
+        /* TELEFONY */
         @media (max-width: 768px) {
             .monitor-screen {
                 top: 65% !important; 
@@ -107,15 +124,23 @@
 </head>
 <body>
 
-    <div class="rotate-hint">OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ</div>
-    <a href="#" class="top-left-chat-label" id="t-chat" onclick="toggleChat(event)">CZAT</a>
+    <!-- WSPÓLNA WARSTWA APLIKACJI (Tło + Kafelki razem) -->
+    <div class="app-viewport">
+        <div class="rotate-hint">OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ</div>
+        <a href="#" class="top-left-chat-label" id="t-chat" onclick="toggleChat(event)">CZAT</a>
 
-    <div class="system-auth-bar">
-        <span class="status-dot"></span> <span id="t-status">STATUS:</span>
-        <a href="login.html" class="auth-btn" id="login-trigger-btn">[ KONTO: GUEST ]</a>
-        <button class="lang-btn" id="lang-toggle-btn" onclick="toggleLanguage()">[ EN ]</button>
-        <button class="help-btn" id="t-help" onclick="openModal('help')">[ POMOC ]</button>
-        <button class="logout-btn" id="logout-btn" onclick="handleLogout()" style="display: none;">[ WYLOGUJ ]</button>
+        <div class="system-auth-bar">
+            <span class="status-dot"></span> <span id="t-status">STATUS:</span>
+            <a href="login.html" class="auth-btn" id="login-trigger-btn">[ KONTO: GUEST ]</a>
+            <button class="lang-btn" id="lang-toggle-btn" onclick="toggleLanguage()">[ EN ]</button>
+            <button class="help-btn" id="t-help" onclick="openModal('help')">[ POMOC ]</button>
+            <button class="logout-btn" id="logout-btn" onclick="handleLogout()" style="display: none;">[ WYLOGUJ ]</button>
+        </div>
+
+        <div class="monitor-screen">
+            <a href="soccer.html" class="monitor-frame"><img src="IMG/soccer_battle_tlo1.jpg" alt="Soccer"></a>
+            <a href="carx.html" class="monitor-frame"><img src="IMG/carx_tlo.jpg" alt="CarX"></a>
+        </div>
     </div>
 
     <div id="auth-modal" class="modal-overlay" onclick="handleModalOutsideClick(event)">
@@ -124,11 +149,6 @@
             <p id="t-help-desc">Kontakt: Chalecki78@gmail.com</p>
             <button onclick="closeModal()">ZROZUMIAŁEM</button>
         </div>
-    </div>
-
-    <div class="monitor-screen">
-        <a href="soccer.html" class="monitor-frame"><img src="IMG/soccer_battle_tlo1.jpg" alt="Soccer"></a>
-        <a href="carx.html" class="monitor-frame"><img src="IMG/carx_tlo.jpg" alt="CarX"></a>
     </div>
 
     <!-- OKNO CZATU -->
