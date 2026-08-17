@@ -163,16 +163,36 @@
         }
 
         try {
-            const response = await fetch(`${API_URL}/api/login`, {
+            // Próbujemy się zalogować
+            let response = await fetch(`${API_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user, pass })
             });
 
-            const data = await response.json();
+            let data = await response.json();
+
+            // Jeśli serwer zresetował pamięć i nie zna konta, automatycznie je zarejestrujemy i zalogujemy!
+            if (!response.ok) {
+                const regResponse = await fetch(`${API_URL}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user, pass })
+                });
+                
+                if (regResponse.ok) {
+                    // Ponawiamy logowanie po automatycznej rejestracji
+                    response = await fetch(`${API_URL}/api/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user, pass })
+                      });
+                    data = await response.json();
+                }
+            }
 
             if (response.ok) {
-                localStorage.setItem('halogen_logged_user', data.user);
+                localStorage.setItem('halogen_logged_user', data.user || user);
                 msg.style.color = '#00ffcc';
                 msg.innerText = 'Zalogowano pomyślnie! Przekierowanie...';
                 setTimeout(() => {
