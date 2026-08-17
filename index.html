@@ -40,7 +40,18 @@
             justify-content: center;
         }
 
-        /* Układ mobilny – całkowite zdjęcie pozycji absolutnej i wymuszenie zjechania w dół */
+        /* UKŁAD DLA TABLETÓW (szerokość od 769px do 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .monitor-screen {
+                top: 55% !important; 
+                left: 35% !important;
+                width: 45% !important;
+                height: 15% !important;
+                transform: rotate(5deg) !important;
+            }
+        }
+
+        /* UKŁAD DLA SMARTFONÓW (szerokość do 768px) */
         @media (max-width: 768px) {
             body {
                 overflow-y: auto !important;
@@ -49,7 +60,7 @@
                 position: relative !important;
                 top: auto !important;
                 left: auto !important;
-                margin: 75vh auto 30px auto !important; /* Wpycha kafelki na 75% wysokości ekranu w dół */
+                margin: 75vh auto 30px auto !important; 
                 width: 80% !important;
                 height: 120px !important;
                 transform: none !important;
