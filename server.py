@@ -122,14 +122,15 @@ def api_admin_sessions():
 # --- OBSŁUGA CZATU (SOCKET.IO) ---
 @socketio.on('join')
 def on_join(data):
-    user = session.get('user', 'GUEST')
+    user = data.get('user') or session.get('user', 'GUEST')
     room = data.get('room', 'global')
     join_room(room)
     emit('status', {'msg': f'{user} dołączył do pokoju'}, room=room)
 
 @socketio.on('chat_msg')
 def handle_chat_msg(data):
-    user = session.get('user', 'GUEST')
+    # Pobieramy użytkownika priorytetowo z przesłanych danych, a sesja lub GUEST to awaryjne koło ratunkowe
+    user = data.get('user') or session.get('user', 'GUEST')
     room = data.get('room', 'global')
     msg = data.get('msg')
     if msg:
@@ -137,7 +138,7 @@ def handle_chat_msg(data):
 
 @socketio.on('message')
 def handle_message(data):
-    user = session.get('user', 'GUEST')
+    user = data.get('user') or session.get('user', 'GUEST')
     room = data.get('room', 'global')
     msg = data.get('msg')
     if msg:
