@@ -14,7 +14,7 @@
             position: fixed;
         }
 
-        /* WSPÓLNA WARSTWA TŁA I KAFELKÓW (Pełny ekran) */
+        /* WSPÓLNA WARSTWA TŁA I KAFELKÓW (Pełny ekran, 100% dopasowanie bez ucinania) */
         .app-viewport {
             position: absolute;
             top: 0;
@@ -24,7 +24,7 @@
             background-image: url('IMG/strona_startowa_tlo.png');
             background-repeat: no-repeat;
             background-position: center center;
-            background-size: cover;
+            background-size: 100% 100%;
         }
 
         .rotate-hint { display: none; }
@@ -58,7 +58,7 @@
             justify-content: center;
         }
 
-        /* 2. UKŁAD DLA TABLETÓW (możesz tu zmienić top/left/width/height jeśli na tablecie kafelki są w innym miejscu) */
+        /* 2. UKŁAD DLA TABLETÓW */
         @media (min-width: 769px) and (max-width: 1024px) {
             .monitor-screen {
                 top: 50% !important; 
@@ -69,7 +69,7 @@
             }
         }
 
-        /* 3. UKŁAD DLA TELEFONÓW (możesz tu zmienić top/left/width/height jeśli na telefonie kafelki są w innym miejscu) */
+        /* 3. UKŁAD DLA TELEFONÓW */
         @media (max-width: 768px) {
             .monitor-screen {
                 top: 65% !important; 
