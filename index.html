@@ -58,8 +58,8 @@
         </div>
         <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 10px; color: #00ffcc; font-size: 12px;"></div>
         <div style="display: flex; padding: 8px; border-top: 1px solid #00ffcc;">
-            <input type="text" id="chat-input" style="flex: 1; background: #000; border: 1px solid #00ffcc; color: #fff;">
-            <button onclick="sendChatMessage()">OK</button>
+            <input type="text" id="chat-input" placeholder="Wpisz wiadomość..." style="flex: 1; background: #000; border: 1px solid #00ffcc; color: #fff; padding: 4px;" onkeypress="handleChatKeyPress(event)">
+            <button onclick="sendChatMessage()" style="background: #00ffcc; color: #000; border: none; padding: 0 10px; font-weight: bold; cursor: pointer;">OK</button>
         </div>
     </div>
 
@@ -69,7 +69,18 @@
         
         function initChatSocket() {
             if (socket && socket.connected) return;
-            socket = io();
+            
+            socket = io({
+                transports: ['websocket', 'polling']
+            });
+
+            const path = window.location.pathname.split('/').pop().replace('.html', '');
+            const room = (path === '' || path === '/' || path === 'index') ? 'global' : path;
+            
+            socket.emit('join', { room: room });
+
+            // Zapobiegamy dublowaniu listenerów
+            socket.off('new_message');
             socket.on('new_message', function(msgData) {
                 const messagesDiv = document.getElementById('chat-messages');
                 messagesDiv.innerHTML += `<div><b>${msgData.user}:</b> ${msgData.msg}</div>`;
@@ -91,8 +102,17 @@
         function sendChatMessage() {
             const input = document.getElementById('chat-input');
             if (input.value.trim() !== '' && socket) {
-                socket.emit('chat_msg', { msg: input.value, user: localStorage.getItem('halogen_logged_user') || 'HALOGEN' });
+                socket.emit('chat_msg', { 
+                    msg: input.value, 
+                    user: localStorage.getItem('halogen_logged_user') || 'HALOGEN' 
+                });
                 input.value = '';
+            }
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
             }
         }
 
