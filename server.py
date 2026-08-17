@@ -6,20 +6,20 @@ app = Flask(__name__, template_folder='.', static_folder='.')
 app.secret_key = 'halogen_secure_secret_key'
 
 USERS_FILE = 'users.json'
-SESSION_FILE = 'current_session.json'
+SESSIONS_FILE = 'active_sessions.json' # Teraz przechowuje listę
 
-def load_users():
-    if not os.path.exists(USERS_FILE):
-        return {}
+def load_json(filename):
+    if not os.path.exists(filename):
+        return {} if filename == USERS_FILE else []
     try:
-        with open(USERS_FILE, 'r', encoding='utf-8') as f:
+        with open(filename, 'r', encoding='utf-8') as f:
             return json.load(f)
     except:
-        return {}
+        return {} if filename == USERS_FILE else []
 
-def save_users(users):
-    with open(USERS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(users, f, ensure_ascii=False, indent=4)
+def save_json(filename, data):
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
 
 @app.route('/')
 def home():
@@ -34,11 +34,15 @@ def api_login():
     data = request.get_json()
     username = data.get('user', '').strip()
     password = data.get('pass', '')
-
-    users = load_users()
+    users = load_json(USERS_FILE)
 
     if username in users and users[username] == password:
         session['user'] = username
+        # Dodaj do listy aktywnych
+        active = load_json(SESSIONS_FILE)
+        if username not in active:
+            active.append(username)
+            save_json(SESSIONS_FILE, active)
         return jsonify({'status': 'success', 'user': username})
     
     return jsonify({'status': 'error', 'message': 'Invalid credentials'}), 401
@@ -48,46 +52,39 @@ def api_register():
     data = request.get_json()
     username = data.get('user', '').strip()
     password = data.get('pass', '')
-
-    if not username or not password:
-        return jsonify({'status': 'error', 'message': 'Empty fields'}), 400
-
-    users = load_users()
-
-    if username in users:
-        return jsonify({'status': 'error', 'message': 'exists'})
-
+    if not username or not password: return jsonify({'status': 'error'}), 400
+    
+    users = load_json(USERS_FILE)
+    if username in users: return jsonify({'status': 'error', 'message': 'exists'})
+    
     users[username] = password
-    save_users(users)
-
+    save_json(USERS_FILE, users)
     return jsonify({'status': 'success'})
 
 @app.route('/api/session', methods=['GET', 'POST'])
 def api_session():
     if request.method == 'GET':
-        if os.path.exists(SESSION_FILE):
-            try:
-                with open(SESSION_FILE, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    return jsonify({'user': data.get('logged_user', 'GUEST')})
-            except:
-                pass
         return jsonify({'user': session.get('user', 'GUEST')})
-
+    
     data = request.get_json()
     username = data.get('user')
     if username:
-        with open(SESSION_FILE, 'w', encoding='utf-8') as f:
-            json.dump({'logged_user': username}, f, ensure_ascii=False, indent=4)
         session['user'] = username
+        active = load_json(SESSIONS_FILE)
+        if username not in active:
+            active.append(username)
+            save_json(SESSIONS_FILE, active)
         return jsonify({'status': 'success'})
     return jsonify({'status': 'error'}), 400
 
-# Endpoint diagnostyczny do podglądu zarejestrowanych użytkowników
+# Endpointy Admina
 @app.route('/api/admin/users', methods=['GET'])
 def api_admin_users():
-    users = load_users()
-    return jsonify(users)
+    return jsonify(load_json(USERS_FILE))
+
+@app.route('/api/admin/active_sessions', methods=['GET'])
+def api_admin_sessions():
+    return jsonify(load_json(SESSIONS_FILE))
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
