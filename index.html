@@ -80,9 +80,8 @@
         let currentLang = 'PL';
         
         function initChatSocket() {
-            if (socket && socket.connected) return;
+            if (socket) return; // Jeśli obiekt socket już istnieje, nie tworzymy nowego
             
-            // Przywracamy bezpieczniejszy tryb (polling -> websocket), żeby upewnić się, że połączenie przejdzie na każdym urządzeniu i sieci
             socket = io({
                 transports: ['polling', 'websocket'],
                 reconnection: true,
@@ -99,7 +98,6 @@
                 console.error('Błąd połączenia Socket.IO:', err);
             });
 
-            socket.off('new_message');
             socket.on('new_message', function(msgData) {
                 console.log('Otrzymano wiadomość z serwera:', msgData);
                 const messagesDiv = document.getElementById('chat-messages');
@@ -108,12 +106,17 @@
             });
         }
 
+        // Inicjalizujemy socket od razu po załadowaniu strony, żeby połączenie było gotowe przed otwarciem okna czatu
+        window.addEventListener('DOMContentLoaded', () => {
+            initChatSocket();
+            checkLoginStatus();
+        });
+
         function toggleChat(event) {
             if (event) event.preventDefault();
             const chatBox = document.getElementById('halogen-chat-container');
             if (chatBox.style.display === 'none' || chatBox.style.display === '') {
                 chatBox.style.display = 'flex';
-                initChatSocket();
             } else {
                 chatBox.style.display = 'none';
             }
@@ -122,7 +125,7 @@
         function sendChatMessage() {
             const input = document.getElementById('chat-input');
             const messageText = input.value.trim();
-            if (messageText !== '' && socket && socket.connected) {
+            if (messageText !== '' && socket) {
                 const currentUser = localStorage.getItem('halogen_logged_user') || 'GUEST';
                 
                 console.log('Wysyłanie wiadomości na serwer:', messageText);
@@ -134,7 +137,7 @@
                 
                 input.value = '';
             } else {
-                console.warn('Nie można wysłać – brak aktywnego połączenia Socket.IO');
+                console.warn('Brak obiektu socket lub pusty tekst');
             }
         }
 
@@ -184,10 +187,6 @@
             checkLoginStatus();
             window.location.reload();
         }
-
-        window.onload = () => {
-            checkLoginStatus();
-        };
     </script>
 </body>
 </html>
