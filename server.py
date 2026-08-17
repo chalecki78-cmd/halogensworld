@@ -1,12 +1,14 @@
 from flask import Flask, request, jsonify, session, render_template, send_from_directory
+from flask_cors import CORS
 import os
 import json
 
 app = Flask(__name__, template_folder='.', static_folder='.')
+CORS(app, supports_credentials=True)
 app.secret_key = 'halogen_secure_secret_key'
 
 USERS_FILE = 'users.json'
-SESSIONS_FILE = 'active_sessions.json' # Teraz przechowuje listę
+SESSIONS_FILE = 'active_sessions.json'
 
 def load_json(filename):
     if not os.path.exists(filename):
@@ -38,7 +40,6 @@ def api_login():
 
     if username in users and users[username] == password:
         session['user'] = username
-        # Dodaj do listy aktywnych
         active = load_json(SESSIONS_FILE)
         if username not in active:
             active.append(username)
@@ -77,7 +78,6 @@ def api_session():
         return jsonify({'status': 'success'})
     return jsonify({'status': 'error'}), 400
 
-# Endpointy Admina
 @app.route('/api/admin/users', methods=['GET'])
 def api_admin_users():
     return jsonify(load_json(USERS_FILE))
