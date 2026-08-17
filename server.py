@@ -25,7 +25,6 @@ def save_users(users):
 def home():
     return render_template('index.html')
 
-# Specjalna ścieżka, żeby pliki CSS i obrazki ładnie się wczytywały z folderów
 @app.route('/<path:filename>')
 def serve_static(filename):
     return send_from_directory('.', filename)
@@ -63,15 +62,27 @@ def api_register():
 
     return jsonify({'status': 'success'})
 
-@app.route('/api/session', methods=['POST'])
+@app.route('/api/session', methods=['GET', 'POST'])
 def api_session():
+    if request.method == 'GET':
+        if os.path.exists(SESSION_FILE):
+            try:
+                with open(SESSION_FILE, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    return jsonify({'user': data.get('logged_user', 'GUEST')})
+            except:
+                pass
+        return jsonify({'user': session.get('user', 'GUEST')})
+
     data = request.get_json()
     username = data.get('user')
     if username:
         with open(SESSION_FILE, 'w', encoding='utf-8') as f:
             json.dump({'logged_user': username}, f, ensure_ascii=False, indent=4)
+        session['user'] = username
         return jsonify({'status': 'success'})
     return jsonify({'status': 'error'}), 400
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
