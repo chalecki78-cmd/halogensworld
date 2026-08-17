@@ -69,7 +69,7 @@
         </div>
         <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 10px; color: #00ffcc; font-size: 12px;"></div>
         <div style="display: flex; padding: 8px; border-top: 1px solid #00ffcc;">
-            <input type="text" id="chat-input" placeholder="Wpisz wiadomość..." style="flex: 1; background: #000; border: 1px solid #00ffcc; color: #fff; padding: 4px;" onkeypress="handleChatKeyPress(event)">
+            <input type="text" id="chat-input" placeholder="Wpisz wiadomość..." style="flex: 1; background: #000; border: 1px solid #00ffcc; color: #fff; padding: 4px;">
             <button onclick="sendChatMessage()" style="background: #00ffcc; color: #000; border: none; padding: 0 10px; font-weight: bold; cursor: pointer;">OK</button>
         </div>
     </div>
@@ -109,6 +109,17 @@
         window.addEventListener('DOMContentLoaded', () => {
             initChatSocket();
             checkLoginStatus();
+
+            // Bezpośrednie nasłuchiwanie klawisza Enter w inpucie
+            const chatInput = document.getElementById('chat-input');
+            if (chatInput) {
+                chatInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        sendChatMessage();
+                    }
+                });
+            }
         });
 
         function toggleChat(event) {
@@ -116,6 +127,11 @@
             const chatBox = document.getElementById('halogen-chat-container');
             if (chatBox.style.display === 'none' || chatBox.style.display === '') {
                 chatBox.style.display = 'flex';
+                // Automatyczne skupienie na polu tekstowym po otwarciu czatu
+                setTimeout(() => {
+                    const input = document.getElementById('chat-input');
+                    if (input) input.focus();
+                }, 100);
             } else {
                 chatBox.style.display = 'none';
             }
@@ -138,14 +154,9 @@
                 });
                 
                 input.value = '';
+                input.focus();
             } else {
                 console.warn('Pusta wiadomość');
-            }
-        }
-
-        function handleChatKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendChatMessage();
             }
         }
 
@@ -180,7 +191,7 @@
                 logoutBtn.style.display = 'inline-block';
             } else {
                 loginBtn.textContent = '[ KONTO: GUEST ]';
-                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'none';
             }
         }
 
