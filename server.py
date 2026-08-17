@@ -52,6 +52,22 @@ def api_login():
     
     return jsonify({'status': 'error', 'message': 'Invalid credentials'}), 401
 
+@app.route('/api/logout', methods=['POST'])
+def api_logout():
+    data = request.get_json() or {}
+    username = data.get('user') or session.get('user')
+    
+    if 'user' in session:
+        session.pop('user', None)
+        
+    if username:
+        active = load_json(SESSIONS_FILE, [])
+        if username in active:
+            active.remove(username)
+            save_json(SESSIONS_FILE, active)
+            
+    return jsonify({'status': 'success'})
+
 @app.route('/api/register', methods=['POST'])
 def api_register():
     data = request.get_json() or {}
