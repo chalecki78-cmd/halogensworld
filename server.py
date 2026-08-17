@@ -83,6 +83,12 @@ def api_session():
         return jsonify({'status': 'success'})
     return jsonify({'status': 'error'}), 400
 
+# Endpoint diagnostyczny do podglądu zarejestrowanych użytkowników
+@app.route('/api/admin/users', methods=['GET'])
+def api_admin_users():
+    users = load_users()
+    return jsonify(users)
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
