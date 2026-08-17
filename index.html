@@ -142,7 +142,18 @@
                 if (!socket) {
                     initChatSocket();
                 }
-                const currentUser = localStorage.getItem('halogen_logged_user') || 'GUEST';
+                
+                // Pobieramy nick z localStorage lub bezpośrednio z przycisku konta jako zabezpieczenie
+                let currentUser = localStorage.getItem('halogen_logged_user');
+                if (!currentUser || currentUser === '') {
+                    const loginBtnText = document.getElementById('login-trigger-btn').textContent;
+                    if (loginBtnText.includes('KONTO:')) {
+                        currentUser = loginBtnText.replace('[ KONTO:', '').replace(']', '').trim();
+                    }
+                }
+                if (!currentUser || currentUser.includes('GUEST')) {
+                    currentUser = 'GUEST';
+                }
                 
                 console.log('Wysyłanie wiadomości na serwer:', messageText, 'Użytkownik:', currentUser);
                 socket.emit('chat_msg', { 
