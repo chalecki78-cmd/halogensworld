@@ -80,7 +80,7 @@
         let currentLang = 'PL';
         
         function initChatSocket() {
-            if (socket) return; // Jeśli obiekt socket już istnieje, nie tworzymy nowego
+            if (socket) return;
             
             socket = io({
                 transports: ['polling', 'websocket'],
@@ -106,7 +106,6 @@
             });
         }
 
-        // Inicjalizujemy socket od razu po załadowaniu strony, żeby połączenie było gotowe przed otwarciem okna czatu
         window.addEventListener('DOMContentLoaded', () => {
             initChatSocket();
             checkLoginStatus();
