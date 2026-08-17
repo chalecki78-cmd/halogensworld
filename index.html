@@ -124,10 +124,13 @@
         function sendChatMessage() {
             const input = document.getElementById('chat-input');
             const messageText = input.value.trim();
-            if (messageText !== '' && socket) {
+            if (messageText !== '') {
+                if (!socket) {
+                    initChatSocket();
+                }
                 const currentUser = localStorage.getItem('halogen_logged_user') || 'GUEST';
                 
-                console.log('Wysyłanie wiadomości na serwer:', messageText);
+                console.log('Wysyłanie wiadomości na serwer:', messageText, 'Użytkownik:', currentUser);
                 socket.emit('chat_msg', { 
                     msg: messageText, 
                     user: currentUser,
@@ -136,7 +139,7 @@
                 
                 input.value = '';
             } else {
-                console.warn('Brak obiektu socket lub pusty tekst');
+                console.warn('Pusta wiadomość');
             }
         }
 
@@ -177,7 +180,7 @@
                 logoutBtn.style.display = 'inline-block';
             } else {
                 loginBtn.textContent = '[ KONTO: GUEST ]';
-                logoutBtn.style.display = 'none';
+                loginBtn.style.display = 'none';
             }
         }
 
