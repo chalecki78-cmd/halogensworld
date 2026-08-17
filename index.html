@@ -415,7 +415,7 @@
     </div>
 
 <script>
-    const API_URL = 'https://haliogensworld.onrender.com';
+    const API_URL = ''; // Pusty string, ponieważ frontend i backend działają pod tą samą domeną na Renderze
     let currentLang = localStorage.getItem('halogen_lang') || 'pl';
     let notifyTimeout = null;
 
@@ -553,19 +553,26 @@
     }
 
     async function handleLogout() {
+        const currentUser = localStorage.getItem('halogen_logged_user');
         localStorage.removeItem('halogen_logged_user');
         
         try {
-            await fetch(`${API_URL}/api/session`, {
+            // Wysyłamy zapytanie do endpointu wylogowania na serwerze, aby usunąć użytkownika z active_sessions.json
+            await fetch(`${API_URL}/api/logout`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user: "GUEST" })
+                body: JSON.stringify({ user: currentUser })
             });
-        } catch (e) {}
+        } catch (e) {
+            console.error("Błąd podczas wylogowywania z serwera:", e);
+        }
 
         updateUIAsGuest();
         const t = translations[currentLang];
         showNotify(t.notifyEndTitle, t.notifyEndBody);
+        
+        // Odświeżenie strony po krótkiej chwili, aby zresetować stan sesji
+        setTimeout(() => { window.location.reload(); }, 1000);
     }
 
     window.onload = () => {
