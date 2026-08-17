@@ -28,7 +28,7 @@
         }
 
         .rotate-hint { display: none; }
-        @media (max-width: 768px) and (orientation: portrait) {
+        @media (max-width: 1024px) and (orientation: portrait) {
             body > *:not(.rotate-hint):not(#halogen-chat-container) { display: none !important; }
             .rotate-hint { display: flex; align-items: center; justify-content: center; height: 100vh; text-align: center; color: #00ffcc; padding: 20px; font-size: 14px; }
         }
@@ -44,7 +44,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #050b0b; border: 2px solid #00ffcc; padding: 25px; width: 320px; border-radius: 6px; }
         
-        /* 1. UKŁAD DOMYŚLNY (DESKTOP) */
+        /* 1. UKŁAD DOMYŚLNY (DUŻE MONITORY / PC) */
         .monitor-screen { 
             position: absolute; 
             top: 43%; 
@@ -58,26 +58,15 @@
             justify-content: center;
         }
 
-        /* 2. UKŁAD DLA TABLETÓW */
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .monitor-screen {
-                top: 50% !important; 
-                left: 30% !important;
-                width: 40% !important;
-                height: 14% !important;
-                transform: rotate(5deg) !important;
-            }
-        }
-
-        /* 3. UKŁAD DLA TELEFONÓW (Testowo z czerwoną ramką i silniejszym przesunięciem) */
-        @media (max-width: 768px) {
+        /* 2. UKŁAD DLA TELEFONÓW I TABLETÓW (wszystko poniżej 1024px szerokości) */
+        @media (max-width: 1024px) {
             .monitor-screen {
                 top: 65% !important; 
-                left: 45% !important; 
+                left: 25% !important; 
                 width: 50% !important; 
                 height: 12% !important;
                 transform: rotate(5deg) !important;
-                border: 2px solid red !important;
+                border: 2px solid red !important; /* Czerwona ramka potwierdzi działanie na telefonie */
             }
         }
 
