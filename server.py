@@ -53,10 +53,12 @@ def api_register():
     data = request.get_json()
     username = data.get('user', '').strip()
     password = data.get('pass', '')
-    if not username or not password: return jsonify({'status': 'error'}), 400
+    if not username or not password: 
+        return jsonify({'status': 'error'}), 400
     
     users = load_json(USERS_FILE)
-    if username in users: return jsonify({'status': 'error', 'message': 'exists'})
+    if username in users: 
+        return jsonify({'status': 'error', 'message': 'exists'})
     
     users[username] = password
     save_json(USERS_FILE, users)
