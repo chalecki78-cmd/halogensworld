@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify, session, send_from_directory
-from flask_cors import CORS
-from flask_socketio import SocketIO, join_room, emit
 import os
 import json
 import hashlib
+from flask import Flask, request, jsonify, session, send_from_directory
+from flask_cors import CORS
+from flask_socketio import SocketIO, join_room, emit
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -17,7 +17,6 @@ USERS_FILE = os.path.join(BASE_DIR, 'users.json')
 SESSIONS_FILE = os.path.join(BASE_DIR, 'active_sessions.json')
 
 def hash_password(password):
-    # Trwałe zabezpieczenie haseł za pomocą szyfrowania SHA-256 z solą systemową
     salt = "halogen_secure_salt_key_"
     return hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
 
@@ -92,7 +91,6 @@ def api_register():
     if username in users: 
         return jsonify({'status': 'error', 'message': 'exists'})
     
-    # Zapisujemy zaszyfrowane hasło trwale w pliku users.json
     users[username] = hash_password(password)
     save_json(USERS_FILE, users)
     return jsonify({'status': 'success'})
@@ -135,7 +133,6 @@ def handle_chat_msg(data):
     room = data.get('room', 'global')
     msg = data.get('msg')
     if msg:
-        # emitujemy do wszystkich w pokoju (w tym do nadawcy, jeśli klient tak obsłuży)
         emit('new_message', {'user': user, 'msg': msg}, room=room)
 
 @socketio.on('message')
