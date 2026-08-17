@@ -82,12 +82,12 @@
             box-shadow: 0 0 8px #00ffcc;
         }
 
-        .hs-zaloguj     { right: 0%;    top: 1.20%;  width: 16.35%; height: 10.60%; }
+        .hs-zaloguj      { right: 0%;   top: 1.20%;  width: 16.35%; height: 10.60%; }
         .hs-giorny-lewy { left: 4.0%;   top: 1.80%;  width: 20.10%; height: 11.80%; }
-        .hs-drugie      { left: 26.66%; top: 1.80%;  width: 8.40%;  height: 11.80%; }
-        .hs-trzecie     { left: 3.0%;   top: 14.10%; width: 18.20%; height: 9.90%;  }
-        .hs-czwarte     { left: 24.0%;  top: 14.10%; width: 8.40%;  height: 9.90%;  }
-        .hs-piate       { left: 2.42%;   top: 22.40%; width: 16.70%; height: 9.90%;  font-size: 1vw; }
+        .hs-drugie       { left: 26.66%; top: 1.80%;  width: 8.40%;  height: 11.80%; }
+        .hs-trzecie      { left: 3.0%;   top: 14.10%; width: 18.20%; height: 9.90%;  }
+        .hs-czwarte      { left: 24.0%;  top: 14.10%; width: 8.40%;  height: 9.90%;  }
+        .hs-piate        { left: 2.42%;   top: 22.40%; width: 16.70%; height: 9.90%;  font-size: 1vw; }
     </style>
 </head>
 <body>
@@ -128,6 +128,7 @@
     </div>
 
     <script>
+        const API_URL = 'https://haliogensworld.onrender.com';
         let currentLang = localStorage.getItem('halogen_lang') || 'pl';
         let loggedUser = localStorage.getItem('halogen_logged_user') || "GUEST";
 
@@ -164,7 +165,7 @@
             let activeUser = localStorage.getItem('halogen_logged_user') || "GUEST";
             
             try {
-                const response = await fetch('/api/session');
+                const response = await fetch(`${API_URL}/api/session`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data && data.user) {
@@ -219,7 +220,7 @@
                     localStorage.removeItem('halogen_logged_user');
                     loggedUser = "GUEST";
                     updateAccountDisplay();
-                    fetch('/api/logout', { method: 'POST' }).catch(() => {});
+                    fetch(`${API_URL}/api/logout`, { method: 'POST' }).catch(() => {});
                 }
             } else {
                 // Zapisujemy aktualną stronę jako cel powrotu po zalogowaniu (zamiast wyrzucać na główną)
