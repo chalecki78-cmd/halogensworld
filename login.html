@@ -1,4 +1,229 @@
-from flask import Flask, request, jsonify, session, render_template, send_from_directory
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logowanie - Jetson Hub</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: #050b0b;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00ffcc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: rgba(0, 10, 10, 0.9);
+            border: 2px solid #00ffcc;
+            padding: 30px;
+            width: 320px;
+            border-radius: 6px;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.3);
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px dashed rgba(0, 255, 204, 0.4);
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 10px;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            background: #000;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            font-family: 'Courier New', Courier, monospace;
+            box-sizing: border-box;
+            border-radius: 2px;
+        }
+
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 8px #00ffcc;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-login {
+            background: #00ffcc;
+            border: 1px solid #00ffcc;
+            color: #000;
+        }
+
+        .btn-login:hover {
+            background: #fff;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        .btn-register {
+            background: transparent;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+        }
+
+        .btn-register:hover {
+            background: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 8px #00ffcc;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 15px;
+            font-size: 9px;
+            color: #00ffcc;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        #message {
+            font-size: 9px;
+            margin-top: 10px;
+            min-height: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>IDENTYFIKACJA UŻYTKOWNIKA</h2>
+        
+        <div class="input-group">
+            <label>NAZWA UŻYTKOWNIKA:</label>
+            <input type="text" id="username" placeholder="Wpisz login...">
+        </div>
+
+        <div class="input-group">
+            <label>HASŁO:</label>
+            <input type="password" id="password" placeholder="Wpisz hasło...">
+        </div>
+
+        <div id="message"></div>
+
+        <div class="btn-container">
+            <button class="btn-login" onclick="handleLogin()">ZALOGUJ</button>
+            <button class="btn-register" onclick="handleRegister()">REJESTRACJA</button>
+        </div>
+
+        <a href="index.html" class="back-link">&lt;&lt; POWRÓT DO CENTRUM</a>
+    </div>
+
+<script>
+    const API_URL = 'https://halogensworld.onrender.com';
+
+    async function handleLogin() {
+        const user = document.getElementById('username').value.trim();
+        const pass = document.getElementById('password').value;
+        const msg = document.getElementById('message');
+
+        if (!user || !pass) {
+            msg.style.color = '#ff4444';
+            msg.innerText = 'Wypełnij wszystkie pola!';
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user, pass })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem('halogen_logged_user', data.user);
+                msg.style.color = '#00ffcc';
+                msg.innerText = 'Zalogowano pomyślnie! Przekierowanie...';
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            } else {
+                msg.style.color = '#ff4444';
+                msg.innerText = data.message || 'Błąd logowania!';
+            }
+        } catch (e) {
+            msg.style.color = '#ff4444';
+            msg.innerText = 'Błąd połączenia z serwerem!';
+        }
+    }
+
+    async function handleRegister() {
+        const user = document.getElementById('username').value.trim();
+        const pass = document.getElementById('password').value;
+        const msg = document.getElementById('message');
+
+        if (!user || !pass) {
+            msg.style.color = '#ff4444';
+            msg.innerText = 'Wypełnij pola przed rejestracją!';
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/api/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user, pass })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.status === 'success') {
+                msg.style.color = '#00ffcc';
+                msg.innerText = 'Konto utworzone! Możesz się zalogować.';
+            } else {
+                msg.style.color = '#ff4444';
+                msg.innerText = data.message === 'exists' ? 'Użytkownik już istnieje!' : 'Błąd rejestracji!';
+            }
+        } catch (e) {
+            msg.style.color = '#ff4444';
+            msg.innerText = 'Błąd połączenia z serwerem!';
+        }
+    }
+</script>
+
+</body>
+</html>from flask import Flask, request, jsonify, session, render_template, send_from_directory
 from flask_cors import CORS
 import os
 import json
