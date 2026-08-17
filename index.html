@@ -415,6 +415,588 @@
     </div>
 
 <script>
+    const API_URL = 'https://haliogensworld.onrender.com';
+    let currentLang = localStorage.getItem('halogen_lang') || 'pl';
+    let notifyTimeout = null;
+
+    const translations = {
+        pl: {
+            chat: "CZAT",
+            status: "STATUS:",
+            helpBtn: "[ POMOC ]",
+            guestBtn: "[ KONTO: GUEST ]",
+            logoutBtn: "[ WYLOGUJ ]",
+            langToggleLabel: "[ EN ]",
+            helpTitle: "WSPARCIE SYSTEMOWE",
+            helpDesc: "W razie problemów z dostępem lub systemem Halogen AI, skontaktuj się z administratorem:\n\nChalecki78@gmail.com",
+            helpClose: "ZROZUMIAŁEM",
+            notifyEndTitle: "SESJA ZAKOŃCZONA",
+            notifyEndBody: "Wylogowano z systemu."
+        },
+        en: {
+            chat: "CHAT",
+            status: "STATUS:",
+            helpBtn: "[ HELP ]",
+            guestBtn: "[ ACCOUNT: GUEST ]",
+            logoutBtn: "[ LOGOUT ]",
+            langToggleLabel: "[ PL ]",
+            helpTitle: "SYSTEM SUPPORT",
+            helpDesc: "If you experience access or system issues with Halogen AI, contact the administrator:\n\nChalecki78@gmail.com",
+            helpClose: "I UNDERSTAND",
+            notifyEndTitle: "SESSION ENDED",
+            notifyEndBody: "Logged out of the system."
+        }
+    };
+
+    function applyLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('halogen_lang', lang);
+        const t = translations[lang];
+
+        const elChat = document.getElementById('t-chat');
+        if (elChat) elChat.innerText = t.chat;
+
+        const elStatus = document.getElementById('t-status');
+        if (elStatus) elStatus.innerText = t.status;
+
+        const elHelp = document.getElementById('t-help');
+        if (elHelp) elHelp.innerText = t.helpBtn;
+
+        const elLogoutBtn = document.getElementById('logout-btn');
+        if (elLogoutBtn) elLogoutBtn.innerText = t.logoutBtn;
+
+        const elLangBtn = document.getElementById('lang-toggle-btn');
+        if (elLangBtn) elLangBtn.innerText = t.langToggleLabel;
+
+        const elHelpTitle = document.getElementById('t-help-title');
+        if (elHelpTitle) elHelpTitle.innerText = t.helpTitle;
+
+        const elHelpDesc = document.getElementById('t-help-desc');
+        if (elHelpDesc) elHelpDesc.innerHTML = t.helpDesc.replace(/\n/g, '<br>');
+
+        const elHelpClose = document.getElementById('t-help-close');
+        if (elHelpClose) elHelpClose.innerText = t.helpClose;
+
+        document.documentElement.lang = lang;
+    }
+
+    function toggleLanguage() {
+        const newLang = currentLang === 'pl' ? 'en' : 'pl';
+        applyLanguage(newLang);
+    }
+
+    function showNotify(title, message, isError = false) {
+        const box = document.getElementById('system-notify');
+        document.getElementById('notify-title').innerText = title;
+        document.getElementById('notify-body').innerText = message;
+
+        box.classList.remove('show');
+        void box.offsetWidth;
+        box.classList.add('show');
+
+        clearTimeout(notifyTimeout);
+        notifyTimeout = setTimeout(() => {
+            box.classList.remove('show');
+        }, 3200);
+    }
+
+    function openModal(mode) {
+        document.getElementById('auth-modal').style.display = 'flex';
+        document.getElementById('help-form').style.display = 'none';
+
+        if (mode === 'help') {
+            document.getElementById('help-form').style.display = 'block';
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('auth-modal').style.display = 'none';
+    }
+
+    function handleModalOutsideClick(event) {
+        if (event.target.id === 'auth-modal') closeModal();
+    }
+
+    // Odczyt sesji z serwera na Renderze
+    async function checkServerSession() {
+        try {
+            const response = await fetch(`${API_URL}/api/session`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.user && data.user !== "GUEST") {
+                    localStorage.setItem('halogen_logged_user', data.user);
+                    updateUIAfterLogin(data.user);
+                    return;
+                }
+            }
+        } catch (e) {
+            console.log("Brak połączenia z serwerem, sprawdzam lokalną pamięć.");
+        }
+
+        const localUser = localStorage.getItem('halogen_logged_user');
+        if (localUser) {
+            updateUIAfterLogin(localUser);
+        } else {
+            updateUIAsGuest();
+        }
+    }
+
+    function updateUIAfterLogin(username) {
+        const prefix = currentLang === 'pl' ? '[ KONTO: ' : '[ ACCOUNT: ';
+        document.getElementById('login-trigger-btn').innerText = prefix + username.toUpperCase() + ' ]';
+        document.getElementById('logout-btn').style.display = 'inline-block';
+    }
+
+    function updateUIAsGuest() {
+        const t = translations[currentLang];
+        document.getElementById('login-trigger-btn').innerText = t.guestBtn;
+        document.getElementById('logout-btn').style.display = 'none';
+    }
+
+    async function handleLogout() {
+        localStorage.removeItem('halogen_logged_user');
+        
+        try {
+            await fetch(`${API_URL}/api/session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user: "GUEST" })
+            });
+        } catch (e) {}
+
+        updateUIAsGuest();
+        const t = translations[currentLang];
+        showNotify(t.notifyEndTitle, t.notifyEndBody);
+    }
+
+    window.onload = () => {
+        applyLanguage(currentLang);
+        checkServerSession();
+
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {});
+        }
+    };
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jetson Hub - System Halogen AI</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-image: url('IMG/strona_startowa_tlo.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00ffcc;
+            overflow: hidden;
+        }
+
+        /* KOMUNIKAT "OBRÓĆ URZĄDZENIE" - domyślnie ukryty */
+        .rotate-hint {
+            display: none;
+        }
+
+        /* TYLKO DLA WIDOKU PIONOWEGO (PORTRAIT) NA TELEFONACH */
+        @media (max-width: 768px) and (orientation: portrait) {
+            body > *:not(.rotate-hint) {
+                display: none !important;
+            }
+
+            .rotate-hint {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                text-align: center;
+                font-family: 'Courier New', Courier, monospace;
+                color: #00ffcc;
+                padding: 20px;
+                box-sizing: border-box;
+                font-size: 14px;
+                line-height: 1.6;
+                letter-spacing: 1px;
+            }
+        }
+
+        .top-left-chat-label {
+            position: absolute;
+            top: 25px;
+            left: 35px;
+        }
+
+        .system-auth-bar {
+            position: absolute;
+            top: 25px;
+            right: 35px;
+            width: auto;
+            flex-wrap: nowrap;
+        }
+
+        /* GŁÓWNY KONTENER KAFELKÓW */
+        .monitor-screen {
+            position: absolute;
+            top: 43%;
+            left: 62.5%;
+            width: 24.8%;
+            height: 18%;
+            transform-origin: left top;
+            margin-top: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            perspective: 450px;
+            clip-path: polygon(
+                1.93% 9.98%,
+                100% 0%,
+                98.39% 100%,
+                0% 85.54%
+            );
+        }
+
+        .cards-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+            justify-content: center;
+            flex-direction: row;
+            gap: 4px;
+            transform: rotate(5deg);
+            transform-style: preserve-3d;
+        }
+
+        /* TELEFON W POZIOMIE */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .monitor-screen {
+                top: 55%;
+            }
+        }
+
+        .monitor-frame {
+            border-radius: 2px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 204, 0.5);
+            box-shadow: 0 0 8px rgba(0, 255, 204, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: #000;
+            text-decoration: none;
+            display: block;
+            flex: 1;
+            height: 100%;
+            width: auto;
+        }
+
+        .monitor-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.9;
+            transition: opacity 0.3s ease;
+        }
+
+        .monitor-frame:hover {
+            border-color: #00ffcc;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.7);
+        }
+
+        .monitor-frame:hover img {
+            opacity: 1;
+        }
+
+        .monitor-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            border-top: 1px solid rgba(0, 255, 204, 0.3);
+            color: #00ffcc;
+            font-size: 4px;
+            padding: 1px 0;
+        }
+
+        /* NAPIS CZAT W LEWYM GÓRNYM ROGU */
+        .top-left-chat-label {
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            padding: 3px 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 9px;
+            font-weight: bold;
+            border-radius: 2px;
+            letter-spacing: 0.5px;
+            z-index: 100;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 10, 10, 0.85);
+            backdrop-filter: blur(2px);
+            text-decoration: none;
+        }
+
+        .top-left-chat-label:hover {
+            background: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 8px #00ffcc;
+        }
+
+        /* GÓRNY PASEK W PRAWYM GÓRNYM ROGU */
+        .system-auth-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10px;
+            color: #00ffcc;
+            z-index: 100;
+            background: rgba(0, 10, 10, 0.85);
+            padding: 6px 12px;
+            border: 1px solid rgba(0, 255, 204, 0.4);
+            border-radius: 4px;
+            backdrop-filter: blur(2px);
+        }
+
+        .auth-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #00ffcc;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #00ffcc;
+            animation: pulse-dot 2s infinite;
+        }
+
+        .auth-btn, .help-btn, .logout-btn, .lang-btn {
+            background: transparent;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            padding: 3px 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 9px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .auth-btn:hover, .help-btn:hover, .lang-btn:hover {
+            background: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 8px #00ffcc;
+        }
+
+        .logout-btn {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        .logout-btn:hover {
+            background: #ff4444;
+            color: #000;
+            box-shadow: 0 0 8px #ff4444;
+        }
+
+        /* OKIENKO MODALNE (POMOC) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #050b0b;
+            border: 2px solid #00ffcc;
+            padding: 25px;
+            width: 320px;
+            max-width: 90vw;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00ffcc;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.3);
+        }
+
+        .modal-content h2 {
+            font-size: 13px;
+            margin-top: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px dashed rgba(0, 255, 204, 0.4);
+            padding-bottom: 8px;
+        }
+
+        .modal-desc {
+            font-size: 9px;
+            color: #88ffdd;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-btn.confirm {
+            background: #00ffcc;
+            border: 1px solid #00ffcc;
+            color: #000;
+        }
+
+        .modal-btn.confirm:hover {
+            background: #fff;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        .support-mail {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* POWIADOMIENIE SYSTEMOWE */
+        .system-notify {
+            position: fixed;
+            top: 70px;
+            right: 35px;
+            min-width: 220px;
+            max-width: 320px;
+            background: rgba(0, 10, 10, 0.92);
+            border: 1px solid #00ffcc;
+            border-left: 4px solid #00ffcc;
+            color: #00ffcc;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10px;
+            padding: 10px 14px;
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.35);
+            z-index: 2000;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            pointer-events: none;
+        }
+
+        .system-notify.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .system-notify .notify-title {
+            display: block;
+            letter-spacing: 1px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        @keyframes pulse-dot {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- KOMUNIKAT DLA TELEFONÓW W PIONIE -->
+    <div class="rotate-hint">
+        OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ<br>
+        [ ROTATE DEVICE TO CONTINUE ]
+    </div>
+
+    <!-- NAPIS CZAT W LEWYM GÓRNYM ROGU -->
+    <a href="#" class="top-left-chat-label" id="t-chat">CZAT</a>
+
+    <!-- GÓRNY PASEK W PRAWYM GÓRNYM ROGU -->
+    <div class="system-auth-bar">
+        <div class="auth-status">
+            <span class="status-dot"></span>
+            <span class="status-text"><span id="t-status">STATUS:</span></span>
+        </div>
+        <!-- PRZYCISK PRZENOSZĄCY DO login.html -->
+        <a href="login.html" class="auth-btn" id="login-trigger-btn">[ KONTO: GUEST ]</a>
+        <button class="lang-btn" id="lang-toggle-btn" onclick="toggleLanguage()">[ EN ]</button>
+        <button class="help-btn" id="t-help" onclick="openModal('help')">[ POMOC ]</button>
+        <button class="logout-btn" id="logout-btn" onclick="handleLogout()" style="display: none;">[ WYLOGUJ ]</button>
+    </div>
+
+    <!-- POWIADOMIENIE SYSTEMOWE -->
+    <div id="system-notify" class="system-notify">
+        <span class="notify-title" id="notify-title">SYSTEM</span>
+        <span id="notify-body"></span>
+    </div>
+
+    <!-- OKIENKO MODALNE (POMOC) -->
+    <div id="auth-modal" class="modal-overlay" onclick="handleModalOutsideClick(event)">
+        <div id="help-form" class="modal-content" style="display: none;" onclick="event.stopPropagation()">
+            <h2 id="t-help-title">WSPARCIE SYSTEMOWE</h2>
+            <p class="modal-desc" id="t-help-desc">
+                W razie problemów z dostępem lub systemem Halogen AI, skontaktuj się z administratorem:<br><br>
+                <span class="support-mail">Chalecki78@gmail.com</span>
+            </p>
+            <div class="modal-buttons">
+                <button class="modal-btn confirm" id="t-help-close" onclick="closeModal()">ZROZUMIAŁEM</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EKRAN MONITORA - KAFELKI -->
+    <div class="monitor-screen">
+        <div class="cards-wrapper">
+            <!-- Kafelek SOCCER -->
+            <a href="soccer.html" class="monitor-frame">
+                <img src="IMG/soccer_battle_tlo1.jpg" alt="Soccer Battle Tło 1">
+                <div class="monitor-caption">SOCCER BATTLE</div>
+            </a>
+            <!-- Kafelek CARX -->
+            <a href="carx.html" class="monitor-frame">
+                <img src="IMG/carx_tlo.jpg" alt="CarX Tło">
+                <div class="monitor-caption">CARX TŁO</div>
+            </a>
+        </div>
+    </div>
+
+<script>
     let currentLang = localStorage.getItem('halogen_lang') || 'pl';
     let notifyTimeout = null;
 
