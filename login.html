@@ -71,37 +71,22 @@
         }
 
         button {
-            flex: 1;
-            padding: 8px;
+            width: 100%;
+            padding: 10px;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             border-radius: 2px;
             transition: all 0.2s ease;
-        }
-
-        .btn-login {
             background: #00ffcc;
             border: 1px solid #00ffcc;
             color: #000;
         }
 
-        .btn-login:hover {
+        button:hover {
             background: #fff;
             box-shadow: 0 0 10px #fff;
-        }
-
-        .btn-register {
-            background: transparent;
-            border: 1px solid #00ffcc;
-            color: #00ffcc;
-        }
-
-        .btn-register:hover {
-            background: #00ffcc;
-            color: #000;
-            box-shadow: 0 0 8px #00ffcc;
         }
 
         .back-link {
@@ -141,8 +126,7 @@
         <div id="message"></div>
 
         <div class="btn-container">
-            <button class="btn-login" onclick="handleLogin()">ZALOGUJ</button>
-            <button class="btn-register" onclick="handleRegister()">REJESTRACJA</button>
+            <button onclick="handleLogin()">WEJDŹ DO SYSTEMU</button>
         </div>
 
         <a href="index.html" class="back-link">&lt;&lt; POWRÓT DO CENTRUM</a>
@@ -163,77 +147,44 @@
         }
 
         try {
-            // Próbujemy się zalogować
+            msg.style.color = '#00ffcc';
+            msg.innerText = 'Łączenie z systemem...';
+
+            // 1. Najpierw próbujemy się zalogować
             let response = await fetch(`${API_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user, pass })
             });
 
-            let data = await response.json();
-
-            // Jeśli serwer zresetował pamięć i nie zna konta, automatycznie je zarejestrujemy i zalogujemy!
+            // 2. Jeśli serwer nie ma konta (np. po restrykcyjnym restarcie Rendera), rejestrujemy je w locie
             if (!response.ok) {
-                const regResponse = await fetch(`${API_URL}/api/register`, {
+                await fetch(`${API_URL}/api/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user, pass })
                 });
-                
-                if (regResponse.ok) {
-                    // Ponawiamy logowanie po automatycznej rejestracji
-                    response = await fetch(`${API_URL}/api/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user, pass })
-                      });
-                    data = await response.json();
-                }
+
+                // Ponawiamy logowanie natychmiast po automatycznej rejestracji
+                response = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user, pass })
+                });
             }
+
+            const data = await response.json();
 
             if (response.ok) {
                 localStorage.setItem('halogen_logged_user', data.user || user);
                 msg.style.color = '#00ffcc';
-                msg.innerText = 'Zalogowano pomyślnie! Przekierowanie...';
+                msg.innerText = 'Autoryzacja pomyślna! Przekierowanie...';
                 setTimeout(() => {
                     window.location.href = 'index.html';
-                }, 1000);
+                }, 800);
             } else {
                 msg.style.color = '#ff4444';
-                msg.innerText = data.message || 'Błąd logowania!';
-            }
-        } catch (e) {
-            msg.style.color = '#ff4444';
-            msg.innerText = 'Błąd połączenia z serwerem!';
-        }
-    }
-
-    async function handleRegister() {
-        const user = document.getElementById('username').value.trim();
-        const pass = document.getElementById('password').value;
-        const msg = document.getElementById('message');
-
-        if (!user || !pass) {
-            msg.style.color = '#ff4444';
-            msg.innerText = 'Wypełnij pola przed rejestracją!';
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API_URL}/api/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user, pass })
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.status === 'success') {
-                msg.style.color = '#00ffcc';
-                msg.innerText = 'Konto utworzone! Możesz się zalogować.';
-            } else {
-                msg.style.color = '#ff4444';
-                msg.innerText = data.message === 'exists' ? 'Użytkownik już istnieje!' : 'Błąd rejestracji!';
+                msg.innerText = data.message || 'Błąd autoryzacji!';
             }
         } catch (e) {
             msg.style.color = '#ff4444';
