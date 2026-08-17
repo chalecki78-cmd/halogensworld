@@ -77,26 +77,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
         let socket = null;
-        
-        function initChatSocket() {
-            if (socket && socket.connected) return;
-            
-            socket = io({
-                transports: ['websocket', 'polling']
-            });
-
-            const path = window.location.pathname.split('/').pop().replace('.html', '');
-            const room = (path === '' || path === '/' || path === 'index') ? 'global' : path;
-            
-            socket.emit('join', { room: room });
-
-            socket.off('new_message');
-            socket.on('new_message', function(msgData) {
-                const messagesDiv = document.getElementById('chat-messages');
-                messagesDiv.innerHTML += `<div><b>${msgData.user}:</b> ${msgData.msg}</div>`;
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            });
-        }
+        let currentLang = 'PL';
 
         function toggleChat(event) {
             if (event) event.preventDefault();
@@ -109,52 +90,61 @@
             }
         }
 
+        function initChatSocket() {
+            if (socket && socket.connected) return;
+            socket = io();
+            socket.on('new_message', function(msgData) {
+                const messagesDiv = document.getElementById('chat-messages');
+                messagesDiv.innerHTML += `<div><b>${msgData.user}:</b> ${msgData.msg}</div>`;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            });
+        }
+
         function sendChatMessage() {
             const input = document.getElementById('chat-input');
-            const messageText = input.value.trim();
-            if (messageText !== '' && socket) {
-                const currentUser = localStorage.getItem('halogen_logged_user') || 'GUEST';
-                
-                // Wysyłamy wiadomość na serwer
+            if (input.value.trim() !== '' && socket) {
                 socket.emit('chat_msg', { 
-                    msg: messageText, 
-                    user: currentUser,
-                    room: 'global' 
+                    msg: input.value, 
+                    user: localStorage.getItem('halogen_logged_user') || 'GUEST' 
                 });
-                
                 input.value = '';
             }
         }
 
         function handleChatKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendChatMessage();
-            }
+            if (event.key === 'Enter') sendChatMessage();
         }
 
-        function checkLoginStatus() {
-            const loggedUser = localStorage.getItem('halogen_logged_user');
-            const loginBtn = document.getElementById('login-trigger-btn');
-            const logoutBtn = document.getElementById('logout-btn');
+        function toggleLanguage() {
+            currentLang = (currentLang === 'PL') ? 'EN' : 'PL';
+            document.getElementById('lang-toggle-btn').textContent = `[ ${currentLang} ]`;
+            // Tu można dodać logikę tłumaczenia napisów
+        }
 
-            if (loggedUser) {
-                loginBtn.textContent = `[ KONTO: ${loggedUser} ]`;
-                logoutBtn.style.display = 'inline-block';
-            } else {
-                loginBtn.textContent = '[ KONTO: GUEST ]';
-                logoutBtn.style.display = 'none';
-            }
+        function openModal(type) {
+            document.getElementById('auth-modal').style.display = 'flex';
+            document.getElementById('help-form').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+            document.getElementById('help-form').style.display = 'none';
         }
 
         function handleLogout() {
             localStorage.removeItem('halogen_logged_user');
-            checkLoginStatus();
             window.location.reload();
         }
 
-        window.onload = () => {
-            checkLoginStatus();
-        };
+        function checkLogin() {
+            const user = localStorage.getItem('halogen_logged_user');
+            if (user) {
+                document.getElementById('login-trigger-btn').textContent = `[ KONTO: ${user} ]`;
+                document.getElementById('logout-btn').style.display = 'inline-block';
+            }
+        }
+
+        window.onload = () => { checkLogin(); };
     </script>
 </body>
 </html>
