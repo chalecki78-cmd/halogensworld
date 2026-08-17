@@ -62,15 +62,28 @@
         <a href="carx.html" class="monitor-frame"><img src="IMG/carx_tlo.jpg" alt="CarX"></a>
     </div>
 
-    <div id="halogen-chat-container" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 320px; height: 400px; background: #0a0a0a; border: 2px solid #00ffcc; z-index: 9999; flex-direction: column; will-change: transform;">
+    <!-- OKNO CZATU -->
+    <div id="halogen-chat-container" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 320px; height: 450px; background: #0a0a0a; border: 2px solid #00ffcc; z-index: 9999; flex-direction: column; will-change: transform;">
         <div style="background: #00ffcc; color: #000; padding: 8px; font-weight: bold; display: flex; justify-content: space-between;">
-            <span>HALOGEN CHAT (GLOBAL)</span>
-            <button onclick="toggleChat(event)">X</button>
+            <span id="chat-title">HALOGEN CHAT</span>
+            <button onclick="toggleChat(event)" style="background: #000; color: #00ffcc; border: 1px solid #000; cursor: pointer; font-weight: bold;">X</button>
         </div>
-        <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 10px; color: #00ffcc; font-size: 12px;"></div>
-        <div style="display: flex; padding: 8px; border-top: 1px solid #00ffcc;">
-            <input type="text" id="chat-input" placeholder="Wpisz wiadomość..." style="flex: 1; background: #000; border: 1px solid #00ffcc; color: #fff; padding: 4px;">
-            <button onclick="sendChatMessage()" style="background: #00ffcc; color: #000; border: none; padding: 0 10px; font-weight: bold; cursor: pointer;">OK</button>
+        
+        <!-- Wybór pokoju lub wiadomości prywatnej -->
+        <div style="padding: 5px; background: #050b0b; border-bottom: 1px solid #00ffcc;">
+            <select id="chat-target" style="width: 100%; background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 4px; font-family: 'Courier New'; font-size: 11px;">
+                <option value="global">Pokój: Globalny</option>
+                <option value="techniczny">Pokój: Techniczny</option>
+                <option value="pw">Prywatna wiadomość (Szept)</option>
+            </select>
+            <input type="text" id="recipient-name" placeholder="Wpisz nick odbiorcy (dla PW)..." style="width: 100%; margin-top: 4px; display: none; background: #000; color: #fff; border: 1px solid #00ffcc; padding: 4px; font-size: 11px; box-sizing: border-box;">
+        </div>
+
+        <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 10px; color: #00ffcc; font-size: 12px; word-break: break-all;"></div>
+        
+        <div style="display: flex; padding: 8px; border-top: 1px solid #00ffcc; background: #050b0b;">
+            <input type="text" id="chat-input" placeholder="Wpisz wiadomość..." style="flex: 1; background: #000; border: 1px solid #00ffcc; color: #fff; padding: 6px; font-size: 11px;">
+            <button onclick="sendChatMessage()" style="background: #00ffcc; color: #000; border: none; padding: 0 12px; font-weight: bold; cursor: pointer;">OK</button>
         </div>
     </div>
 
@@ -91,19 +104,54 @@
 
             socket.on('connect', () => {
                 console.log('Socket połączony z serwerem, ID:', socket.id);
-                socket.emit('join', { room: 'global' });
+                let currentUser = getCurrentUser();
+                // Rejestrujemy socket użytkownika na serwerze (do obsługi wiadomości prywatnych)
+                socket.emit('register_socket', { user: currentUser });
+                // Domyślne dołączenie do pokoju globalnego
+                socket.emit('join', { room: 'global', user: currentUser });
             });
 
             socket.on('connect_error', (err) => {
                 console.error('Błąd połączenia Socket.IO:', err);
             });
 
+            socket.on('status', function(data) {
+                const messagesDiv = document.getElementById('chat-messages');
+                messagesDiv.innerHTML += `<div style="color: #888; font-style: italic; margin-bottom: 4px;">* ${data.msg}</div>`;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            });
+
             socket.on('new_message', function(msgData) {
                 console.log('Otrzymano wiadomość z serwera:', msgData);
                 const messagesDiv = document.getElementById('chat-messages');
-                messagesDiv.innerHTML += `<div><b>${msgData.user}:</b> ${msgData.msg}</div>`;
+                
+                let displaySender = msgData.user;
+                let msgStyle = '';
+                
+                if (msgData.private) {
+                    displaySender = `[PW od ${msgData.user}]`;
+                    msgStyle = 'color: #ffcc00;'; // Prywatne wiadomości wyróżnione na żółto/złoto
+                } else if (msgData.room && msgData.room !== 'global') {
+                    displaySender = `[${msgData.room}] ${msgData.user}`;
+                }
+
+                messagesDiv.innerHTML += `<div style="margin-bottom: 4px; ${msgStyle}"><b>${displaySender}:</b> ${msgData.msg}</div>`;
                 messagesDiv.scrollTop = messagesDiv.scrollHeight;
             });
+        }
+
+        function getCurrentUser() {
+            let currentUser = localStorage.getItem('halogen_logged_user');
+            if (!currentUser || currentUser === '') {
+                const loginBtnText = document.getElementById('login-trigger-btn').textContent;
+                if (loginBtnText.includes('KONTO:')) {
+                    currentUser = loginBtnText.replace('[ KONTO:', '').replace(']', '').trim();
+                }
+            }
+            if (!currentUser || currentUser.includes('GUEST')) {
+                return 'GUEST';
+            }
+            return currentUser;
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -119,6 +167,26 @@
                     }
                 });
             }
+
+            // Obsługa widoczności pola wpisywania nicku dla PW
+            document.getElementById('chat-target').addEventListener('change', function() {
+                const recipientInput = document.getElementById('recipient-name');
+                const chatTitle = document.getElementById('chat-title');
+                
+                if (this.value === 'pw') {
+                    recipientInput.style.display = 'block';
+                    recipientInput.focus();
+                    chatTitle.textContent = 'HALOGEN CHAT (PW)';
+                } else {
+                    recipientInput.style.display = 'none';
+                    chatTitle.textContent = `HALOGEN CHAT (${this.value.toUpperCase()})`;
+                    
+                    // Jeśli zmieniono pokój publiczny, wysyłamy zdarzenie dołączenia do pokoju na serwerze
+                    if (socket) {
+                        socket.emit('join', { room: this.value, user: getCurrentUser() });
+                    }
+                }
+            });
         });
 
         function toggleChat(event) {
@@ -138,34 +206,38 @@
         function sendChatMessage() {
             const input = document.getElementById('chat-input');
             const messageText = input.value.trim();
+            const targetSelect = document.getElementById('chat-target').value;
+            const recipientInput = document.getElementById('recipient-name');
+            
             if (messageText !== '') {
                 if (!socket) {
                     initChatSocket();
                 }
                 
-                // Pobieramy nick z localStorage lub bezpośrednio z przycisku konta jako zabezpieczenie
-                let currentUser = localStorage.getItem('halogen_logged_user');
-                if (!currentUser || currentUser === '') {
-                    const loginBtnText = document.getElementById('login-trigger-btn').textContent;
-                    if (loginBtnText.includes('KONTO:')) {
-                        currentUser = loginBtnText.replace('[ KONTO:', '').replace(']', '').trim();
+                let currentUser = getCurrentUser();
+                let payload = {
+                    msg: messageText,
+                    user: currentUser
+                };
+
+                if (targetSelect === 'pw') {
+                    const recipientName = recipientInput.value.trim();
+                    if (!recipientName) {
+                        alert('Wpisz nazwę użytkownika, do którego chcesz wysłać wiadomość prywatną!');
+                        recipientInput.focus();
+                        return;
                     }
-                }
-                if (!currentUser || currentUser.includes('GUEST')) {
-                    currentUser = 'GUEST';
+                    payload.recipient = recipientName;
+                } else {
+                    payload.room = targetSelect;
+                    payload.recipient = null;
                 }
                 
-                console.log('Wysyłanie wiadomości na serwer:', messageText, 'Użytkownik:', currentUser);
-                socket.emit('chat_msg', { 
-                    msg: messageText, 
-                    user: currentUser,
-                    room: 'global' 
-                });
+                console.log('Wysyłanie wiadomości:', payload);
+                socket.emit('chat_msg', payload);
                 
                 input.value = '';
                 input.focus();
-            } else {
-                console.warn('Pusta wiadomość');
             }
         }
 
