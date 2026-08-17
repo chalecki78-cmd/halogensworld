@@ -10,8 +10,6 @@
             background: #000 url('IMG/strona_startowa_tlo.png') no-repeat center center fixed; 
             background-size: cover; 
             font-family: 'Courier New', Courier, monospace; color: #00ffcc; 
-            overflow: hidden;
-            will-change: background-image;
             -webkit-font-smoothing: antialiased;
         }
         .rotate-hint { display: none; }
@@ -28,7 +26,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #050b0b; border: 2px solid #00ffcc; padding: 25px; width: 320px; border-radius: 6px; }
         
-        /* Oryginalne kafelki / ekrany monitorów – domyślnie (desktop) */
+        /* Domyślny układ (Desktop) */
         .monitor-screen { 
             position: absolute; 
             top: 43%; 
@@ -42,14 +40,19 @@
             justify-content: center;
         }
 
-        /* Wersja mobilna: zakotwiczenie kafelków nisko na ekranie telefonu */
+        /* Układ mobilny – całkowite zdjęcie pozycji absolutnej i wymuszenie zjechania w dół */
         @media (max-width: 768px) {
+            body {
+                overflow-y: auto !important;
+            }
             .monitor-screen {
-                top: 78% !important; 
-                left: 10% !important;
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                margin: 75vh auto 30px auto !important; /* Wpycha kafelki na 75% wysokości ekranu w dół */
                 width: 80% !important;
-                height: 14% !important;
-                transform: rotate(5deg) !important;
+                height: 120px !important;
+                transform: none !important;
             }
         }
 
@@ -65,7 +68,6 @@
             width: 100%; 
             height: 100%; 
             object-fit: cover; 
-            content-visibility: auto;
         }
         
         #halogen-chat-container {
@@ -327,7 +329,7 @@
                 logoutBtn.style.display = 'inline-block';
             } else {
                 loginBtn.textContent = '[ KONTO: GUEST ]';
-                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'none';
             }
         }
 
