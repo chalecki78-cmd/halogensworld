@@ -111,11 +111,17 @@
 
         function sendChatMessage() {
             const input = document.getElementById('chat-input');
-            if (input.value.trim() !== '' && socket) {
+            const messageText = input.value.trim();
+            if (messageText !== '' && socket) {
+                const currentUser = localStorage.getItem('halogen_logged_user') || 'GUEST';
+                
+                // Wysyłamy wiadomość na serwer
                 socket.emit('chat_msg', { 
-                    msg: input.value, 
-                    user: localStorage.getItem('halogen_logged_user') || 'GUEST' 
+                    msg: messageText, 
+                    user: currentUser,
+                    room: 'global' 
                 });
+                
                 input.value = '';
             }
         }
@@ -126,7 +132,6 @@
             }
         }
 
-        // Sprawdzanie statusu logowania przy starcie strony
         function checkLoginStatus() {
             const loggedUser = localStorage.getItem('halogen_logged_user');
             const loginBtn = document.getElementById('login-trigger-btn');
