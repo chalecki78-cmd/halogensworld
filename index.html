@@ -9,7 +9,7 @@
             margin: 0; padding: 0; min-height: 100vh; 
             background-image: url('IMG/strona_startowa_tlo.png'); 
             background-size: cover; background-position: center; background-repeat: no-repeat; 
-            font-family: 'Courier New', Courier, monospace; color: #00ffcc; 
+            font-family: 'Courier New', Courier, monospace; color: #00ffcc; overflow: hidden; 
             -webkit-font-smoothing: antialiased;
         }
         .rotate-hint { display: none; }
@@ -26,7 +26,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #050b0b; border: 2px solid #00ffcc; padding: 25px; width: 320px; border-radius: 6px; }
         
-        /* Kafelki / ekrany monitorów – domyślnie (desktop) */
+        /* Oryginalne kafelki / ekrany monitorów – domyślnie (desktop) */
         .monitor-screen { 
             position: absolute; 
             top: 43%; 
@@ -39,20 +39,14 @@
             clip-path: polygon(1.93% 9.98%, 100% 0%, 98.39% 100%, 0% 85.54%); 
         }
 
-        /* Wersja mobilna: pełny reset pozycji absolutnej i bezpieczne wypchnięcie w dół z zachowaniem proporcji */
+        /* Wersja mobilna: zjeżdżamy mocno w dół z zachowaniem idealnego pochylenia i proporcji */
         @media (max-width: 768px) {
-            body {
-                overflow: auto !important;
-            }
             .monitor-screen {
-                position: relative !important;
-                top: auto !important;
-                left: auto !important;
-                margin: 65vh auto 20px auto !important; /* Przesuwa kafelki na 65% wysokości ekranu w dół */
-                width: 75% !important;
-                height: 15vh !important;
-                transform: none !important;
-                clip-path: none !important;
+                top: 78% !important; 
+                left: 15% !important;
+                width: 70% !important;
+                height: 15% !important;
+                transform: rotate(5deg) !important;
             }
         }
 
