@@ -9,7 +9,7 @@
             margin: 0; padding: 0; min-height: 100vh; 
             background-image: url('IMG/strona_startowa_tlo.png'); 
             background-size: cover; background-position: center; background-repeat: no-repeat; 
-            font-family: 'Courier New', Courier, monospace; color: #00ffcc; 
+            font-family: 'Courier New', Courier, monospace; color: #00ffcc; overflow: hidden; 
             -webkit-font-smoothing: antialiased;
         }
         .rotate-hint { display: none; }
@@ -26,7 +26,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #050b0b; border: 2px solid #00ffcc; padding: 25px; width: 320px; border-radius: 6px; }
         
-        /* Kafelki dla DESKTOPU */
+        /* Oryginalne kafelki / ekrany monitorów – domyślnie (desktop) */
         .monitor-screen { 
             position: absolute; 
             top: 43%; 
@@ -39,21 +39,13 @@
             clip-path: polygon(1.93% 9.98%, 100% 0%, 98.39% 100%, 0% 85.54%); 
         }
 
-        /* Domyślnie ukrywamy wersję mobilną na komputerach */
-        .mobile-monitors { display: none; }
-
-        /* Kafelki dla TELEFONU / WĄSKICH EKRANÓW */
-        @media (max-width: 1024px) {
-            body { overflow: auto !important; }
-            .monitor-screen { display: none !important; } /* Ukrywamy desktopowe kafelki */
-            
-            .mobile-monitors {
-                display: flex !important;
-                justify-content: center;
-                gap: 10px;
-                width: 90%;
-                margin: 70vh auto 30px auto; /* Pozycja niżej na ekranie telefonu */
-                height: 90px;
+        /* Przesunięte w dół, ale zachowujące swój styl i pochylenie na urządzeniach mobilnych */
+        @media (max-width: 768px) {
+            .monitor-screen {
+                top: 75% !important; 
+                left: 20% !important;
+                width: 60% !important;
+                height: 14% !important;
             }
         }
 
@@ -109,14 +101,7 @@
         </div>
     </div>
 
-    <!-- Wersja kafelków na komputer (Desktop) -->
     <div class="monitor-screen">
-        <a href="soccer.html" class="monitor-frame"><img src="IMG/soccer_battle_tlo1.jpg" alt="Soccer"></a>
-        <a href="carx.html" class="monitor-frame"><img src="IMG/carx_tlo.jpg" alt="CarX"></a>
-    </div>
-
-    <!-- Wersja kafelków na telefon (Mobile - pojawia się automatycznie na małych ekranach) -->
-    <div class="mobile-monitors">
         <a href="soccer.html" class="monitor-frame"><img src="IMG/soccer_battle_tlo1.jpg" alt="Soccer"></a>
         <a href="carx.html" class="monitor-frame"><img src="IMG/carx_tlo.jpg" alt="CarX"></a>
     </div>
@@ -326,7 +311,7 @@
                 logoutBtn.style.display = 'inline-block';
             } else {
                 loginBtn.textContent = '[ KONTO: GUEST ]';
-                logoutBtn.style.display = 'none';
+                loginBtn.style.display = 'none';
             }
         }
 
