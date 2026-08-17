@@ -80,6 +80,7 @@ def api_logout():
         if username in active:
             active.remove(username)
             save_json(SESSIONS_FILE, active)
+        broadcast_user_list()
     return jsonify({'status': 'success'})
 
 @app.route('/api/register', methods=['POST'])
@@ -96,33 +97,11 @@ def api_register():
     save_json(USERS_FILE, users)
     return jsonify({'status': 'success'})
 
-@app.route('/api/session', methods=['GET', 'POST'])
-def api_session():
-    if request.method == 'GET':
-        return jsonify({'user': session.get('user', 'GUEST')})
-    data = request.get_json() or {}
-    username = data.get('user')
-    if username:
-        session['user'] = username
-        active = load_json(SESSIONS_FILE, [])
-        if username not in active:
-            active.append(username)
-            save_json(SESSIONS_FILE, active)
-        return jsonify({'status': 'success'})
-    return jsonify({'status': 'error'}), 400
-
-@app.route('/api/admin/users', methods=['GET'])
-def api_admin_users():
-    return jsonify(load_json(USERS_FILE, {}))
-
-@app.route('/api/admin/active_sessions', methods=['GET'])
-def api_admin_sessions():
-    return jsonify(load_json(SESSIONS_FILE, []))
-
-# --- ROZBUDOWANA OBSŁUGA CZATU (POKOJE I WIADOMOŚCI PRYWATNE) ---
-
-# Słownik do śledzenia mapowania użytkowników na ich identyfikory socket.io (przydatne do PW)
 connected_users = {}
+
+def broadcast_user_list():
+    users_list = list(connected_users.keys())
+    socketio.emit('update_user_list', users_list)
 
 @socketio.on('connect')
 def handle_connect():
@@ -130,56 +109,45 @@ def handle_connect():
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    # Usuwamy użytkownika z mapowania przy rozłączeniu
     for uname, sid in list(connected_users.items()):
         if sid == request.sid:
             del connected_users[uname]
             break
+    broadcast_user_list()
     print("Klient rozłączył się:", request.sid)
 
 @socketio.on('register_socket')
 def handle_register_socket(data):
     user = data.get('user') or session.get('user', 'GUEST')
     connected_users[user] = request.sid
+    broadcast_user_list()
     print(f"Zarejestrowano socket dla użytkownika: {user} -> SID: {request.sid}")
 
 @socketio.on('join')
 def on_join(data):
-    user = data.get('user') or data.get('username') or session.get('user', 'GUEST')
+    user = data.get('user') or session.get('user', 'GUEST')
     room = data.get('room', 'global')
-    
-    # Opcjonalnie: opuszczenie innych pokoi lub obsługa wielu pokoi
     join_room(room)
     emit('status', {'msg': f'{user} dołączył do pokoju: {room}'}, room=room)
 
 @socketio.on('chat_msg')
 def handle_chat_msg(data):
-    user = data.get('user') or data.get('username') or data.get('name') or session.get('user', 'GUEST')
+    user = data.get('user') or session.get('user', 'GUEST')
     room = data.get('room', 'global')
-    msg = data.get('msg') or data.get('message')
-    recipient = data.get('recipient') # Jeśli podano, to wiadomość prywatna do konkretnego użytkownika
+    msg = data.get('msg')
+    recipient = data.get('recipient')
 
     if not msg:
         return
 
-    # Jeśli wybrano odbiorcę prywatnego, wysyłamy tylko do niego oraz do nadawcy
     if recipient and recipient != 'global':
         target_sid = connected_users.get(recipient)
         private_payload = {'user': user, 'msg': msg, 'private': True, 'recipient': recipient}
-        
-        # Wyślij do odbiorcy prywatnego, jeśli jest online
         if target_sid:
             socketio.emit('new_message', private_payload, room=target_sid)
-        
-        # Wyślij zwrotnie do nadawcy, aby widział co napisał
         emit('new_message', private_payload)
     else:
-        # Standardowa wiadomość publiczna w pokoju
         emit('new_message', {'user': user, 'msg': msg, 'room': room}, room=room)
-
-@socketio.on('message')
-def handle_message(data):
-    handle_chat_msg(data)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
