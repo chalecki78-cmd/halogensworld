@@ -6,16 +6,10 @@
     <title>Jetson Hub - System Halogen AI</title>
     <style>
         body { 
-            margin: 0; 
-            padding: 0; 
-            min-height: 100vh; 
+            margin: 0; padding: 0; min-height: 100vh; 
             background-image: url('IMG/strona_startowa_tlo.png'); 
-            background-size: cover; 
-            background-position: center; 
-            background-repeat: no-repeat; 
-            font-family: 'Courier New', Courier, monospace; 
-            color: #00ffcc; 
-            overflow: hidden; 
+            background-size: cover; background-position: center; background-repeat: no-repeat; 
+            font-family: 'Courier New', Courier, monospace; color: #00ffcc; overflow: hidden; 
             -webkit-font-smoothing: antialiased;
         }
         .rotate-hint { display: none; }
@@ -23,7 +17,7 @@
             body > *:not(.rotate-hint):not(#halogen-chat-container) { display: none !important; }
             .rotate-hint { display: flex; align-items: center; justify-content: center; height: 100vh; text-align: center; color: #00ffcc; padding: 20px; font-size: 14px; }
         }
-        .top-left-chat-label { position: absolute; top: 25px; left: 35px; border: 1px solid #00ffcc; color: #00ffcc; padding: 3px 8px; font-size: 9px; font-weight: bold; border-radius: 2px; z-index: 100; cursor: pointer; background: rgba(0, 10, 10, 0.85); text-decoration: none; will-change: background, color; }
+        .top-left-chat-label { position: absolute; top: 25px; left: 35px; border: 1px solid #00ffcc; color: #00ffcc; padding: 3px 8px; font-size: 9px; font-weight: bold; border-radius: 2px; z-index: 100; cursor: pointer; background: rgba(0, 10, 10, 0.85); text-decoration: none; }
         .top-left-chat-label:hover { background: #00ffcc; color: #000; }
         .system-auth-bar { position: absolute; top: 25px; right: 35px; display: flex; align-items: center; gap: 10px; font-size: 10px; color: #00ffcc; z-index: 100; background: rgba(0, 10, 10, 0.85); padding: 6px 12px; border: 1px solid rgba(0, 255, 204, 0.4); border-radius: 4px; }
         .status-dot { width: 6px; height: 6px; background-color: #00ffcc; border-radius: 50%; box-shadow: 0 0 4px #00ffcc; }
@@ -31,9 +25,15 @@
         .logout-btn { border-color: #ff4444; color: #ff4444; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #050b0b; border: 2px solid #00ffcc; padding: 25px; width: 320px; border-radius: 6px; }
-        .monitor-screen { position: absolute; top: 43%; left: 62.5%; width: 24.8%; height: 18%; transform: rotate(5deg); display: flex; gap: 4px; clip-path: polygon(1.93% 9.98%, 100% 0%, 98.39% 100%, 0% 85.54%); will-change: transform; }
+        .monitor-screen { position: absolute; top: 43%; left: 62.5%; width: 24.8%; height: 18%; transform: rotate(5deg); display: flex; gap: 4px; clip-path: polygon(1.93% 9.98%, 100% 0%, 98.39% 100%, 0% 85.54%); }
         .monitor-frame { flex: 1; border: 1px solid rgba(0, 255, 204, 0.5); background: #000; cursor: pointer; position: relative; }
         .monitor-frame img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Styl listy użytkowników w czacie */
+        .chat-layout { display: flex; flex: 1; overflow: hidden; }
+        .users-sidebar { width: 110px; border-right: 1px solid #00ffcc; background: #030606; padding: 5px; overflow-y: auto; font-size: 10px; }
+        .user-item { cursor: pointer; padding: 2px 4px; margin-bottom: 2px; border-radius: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-item:hover { background: #00ffcc; color: #000; }
     </style>
 </head>
 <body>
@@ -63,23 +63,30 @@
     </div>
 
     <!-- OKNO CZATU -->
-    <div id="halogen-chat-container" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 320px; height: 450px; background: #0a0a0a; border: 2px solid #00ffcc; z-index: 9999; flex-direction: column; will-change: transform;">
+    <div id="halogen-chat-container" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 380px; height: 450px; background: #0a0a0a; border: 2px solid #00ffcc; z-index: 9999; flex-direction: column;">
         <div style="background: #00ffcc; color: #000; padding: 8px; font-weight: bold; display: flex; justify-content: space-between;">
             <span id="chat-title">HALOGEN CHAT</span>
             <button onclick="toggleChat(event)" style="background: #000; color: #00ffcc; border: 1px solid #000; cursor: pointer; font-weight: bold;">X</button>
         </div>
         
-        <!-- Wybór pokoju lub wiadomości prywatnej -->
-        <div style="padding: 5px; background: #050b0b; border-bottom: 1px solid #00ffcc;">
-            <select id="chat-target" style="width: 100%; background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 4px; font-family: 'Courier New'; font-size: 11px;">
+        <!-- Wybór pokoju -->
+        <div style="padding: 5px; background: #050b0b; border-bottom: 1px solid #00ffcc; display: flex; gap: 5px; align-items: center;">
+            <select id="chat-target" style="flex: 1; background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 4px; font-family: 'Courier New'; font-size: 11px;">
                 <option value="global">Pokój: Globalny</option>
                 <option value="techniczny">Pokój: Techniczny</option>
                 <option value="pw">Prywatna wiadomość (Szept)</option>
             </select>
-            <input type="text" id="recipient-name" placeholder="Wpisz nick odbiorcy (dla PW)..." style="width: 100%; margin-top: 4px; display: none; background: #000; color: #fff; border: 1px solid #00ffcc; padding: 4px; font-size: 11px; box-sizing: border-box;">
+            <input type="text" id="recipient-name" placeholder="Nick odbiorcy" style="width: 90px; display: none; background: #000; color: #fff; border: 1px solid #00ffcc; padding: 4px; font-size: 11px;" readonly>
         </div>
 
-        <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 10px; color: #00ffcc; font-size: 12px; word-break: break-all;"></div>
+        <!-- Układ główny: Lista użytkowników po lewej, wiadomości po prawej -->
+        <div class="chat-layout">
+            <div class="users-sidebar">
+                <div style="font-weight: bold; border-bottom: 1px dashed #00ffcc; margin-bottom: 4px; padding-bottom: 2px;">ONLINE:</div>
+                <div id="online-users-list"></div>
+            </div>
+            <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 10px; color: #00ffcc; font-size: 12px; word-break: break-all; background: #050b0b;"></div>
+        </div>
         
         <div style="display: flex; padding: 8px; border-top: 1px solid #00ffcc; background: #050b0b;">
             <input type="text" id="chat-input" placeholder="Wpisz wiadomość..." style="flex: 1; background: #000; border: 1px solid #00ffcc; color: #fff; padding: 6px; font-size: 11px;">
@@ -103,16 +110,21 @@
             });
 
             socket.on('connect', () => {
-                console.log('Socket połączony z serwerem, ID:', socket.id);
                 let currentUser = getCurrentUser();
-                // Rejestrujemy socket użytkownika na serwerze (do obsługi wiadomości prywatnych)
                 socket.emit('register_socket', { user: currentUser });
-                // Domyślne dołączenie do pokoju globalnego
                 socket.emit('join', { room: 'global', user: currentUser });
             });
 
-            socket.on('connect_error', (err) => {
-                console.error('Błąd połączenia Socket.IO:', err);
+            socket.on('update_user_list', function(users) {
+                const usersListDiv = document.getElementById('online-users-list');
+                usersListDiv.innerHTML = '';
+                let currentUser = getCurrentUser();
+
+                users.forEach(user => {
+                    if (user !== currentUser) {
+                        usersListDiv.innerHTML += `<div class="user-item" onclick="startPrivateChat('${user}')" title="Kliknij, aby pisać prywatnie">@ ${user}</div>`;
+                    }
+                });
             });
 
             socket.on('status', function(data) {
@@ -122,15 +134,13 @@
             });
 
             socket.on('new_message', function(msgData) {
-                console.log('Otrzymano wiadomość z serwera:', msgData);
                 const messagesDiv = document.getElementById('chat-messages');
-                
                 let displaySender = msgData.user;
                 let msgStyle = '';
                 
                 if (msgData.private) {
                     displaySender = `[PW od ${msgData.user}]`;
-                    msgStyle = 'color: #ffcc00;'; // Prywatne wiadomości wyróżnione na żółto/złoto
+                    msgStyle = 'color: #ffcc00;';
                 } else if (msgData.room && msgData.room !== 'global') {
                     displaySender = `[${msgData.room}] ${msgData.user}`;
                 }
@@ -139,6 +149,16 @@
                 messagesDiv.scrollTop = messagesDiv.scrollHeight;
             });
         }
+
+        // Funkcja wywoływana po kliknięciu w nick użytkownika z listy
+        window.startPrivateChat = function(username) {
+            document.getElementById('chat-target').value = 'pw';
+            const recipientInput = document.getElementById('recipient-name');
+            recipientInput.style.display = 'block';
+            recipientInput.value = username;
+            document.getElementById('chat-title').textContent = `HALOGEN CHAT (PW: ${username})`;
+            document.getElementById('chat-input').focus();
+        };
 
         function getCurrentUser() {
             let currentUser = localStorage.getItem('halogen_logged_user');
@@ -168,7 +188,6 @@
                 });
             }
 
-            // Obsługa widoczności pola wpisywania nicku dla PW
             document.getElementById('chat-target').addEventListener('change', function() {
                 const recipientInput = document.getElementById('recipient-name');
                 const chatTitle = document.getElementById('chat-title');
@@ -179,9 +198,8 @@
                     chatTitle.textContent = 'HALOGEN CHAT (PW)';
                 } else {
                     recipientInput.style.display = 'none';
+                    recipientInput.value = '';
                     chatTitle.textContent = `HALOGEN CHAT (${this.value.toUpperCase()})`;
-                    
-                    // Jeśli zmieniono pokój publiczny, wysyłamy zdarzenie dołączenia do pokoju na serwerze
                     if (socket) {
                         socket.emit('join', { room: this.value, user: getCurrentUser() });
                     }
@@ -223,8 +241,7 @@
                 if (targetSelect === 'pw') {
                     const recipientName = recipientInput.value.trim();
                     if (!recipientName) {
-                        alert('Wpisz nazwę użytkownika, do którego chcesz wysłać wiadomość prywatną!');
-                        recipientInput.focus();
+                        alert('Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!');
                         return;
                     }
                     payload.recipient = recipientName;
@@ -233,9 +250,7 @@
                     payload.recipient = null;
                 }
                 
-                console.log('Wysyłanie wiadomości:', payload);
                 socket.emit('chat_msg', payload);
-                
                 input.value = '';
                 input.focus();
             }
