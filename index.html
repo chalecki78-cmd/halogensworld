@@ -613,27 +613,29 @@
             const chatBox = document.getElementById('halogen-chat-container');
             
             if (chatBox.style.display === 'none' || chatBox.style.display === '') {
-                fetch(`${API_URL}/api/session`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data && data.user && data.user !== 'GUEST') {
-                            chatBox.style.display = 'flex';
-                            initChatSocket();
-                        } else {
+                const localUser = localStorage.getItem('halogen_logged_user');
+                
+                if (localUser && localUser !== 'GUEST') {
+                    chatBox.style.display = 'flex';
+                    initChatSocket();
+                } else {
+                    fetch(`${API_URL}/api/session`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data && data.user && data.user !== 'GUEST') {
+                                localStorage.setItem('halogen_logged_user', data.user);
+                                chatBox.style.display = 'flex';
+                                initChatSocket();
+                            } else {
+                                const errText = currentLang === 'pl' ? 'Musisz być zalogowany, aby otworzyć czat!' : 'You must be logged in to open the chat!';
+                                showNotify('SYSTEM', errText, true);
+                            }
+                        })
+                        .catch(() => {
                             const errText = currentLang === 'pl' ? 'Musisz być zalogowany, aby otworzyć czat!' : 'You must be logged in to open the chat!';
                             showNotify('SYSTEM', errText, true);
-                        }
-                    })
-                    .catch(() => {
-                        const localUser = localStorage.getItem('halogen_logged_user');
-                        if (localUser) {
-                            chatBox.style.display = 'flex';
-                            initChatSocket();
-                        } else {
-                            const errText = currentLang === 'pl' ? 'Musisz być zalogowany, aby otworzyć czat!' : 'You must be logged in to open the chat!';
-                            showNotify('SYSTEM', errText, true);
-                        }
-                    });
+                        });
+                }
             } else {
                 chatBox.style.display = 'none';
             }
