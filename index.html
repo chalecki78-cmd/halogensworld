@@ -39,13 +39,13 @@
             clip-path: polygon(1.93% 9.98%, 100% 0%, 98.39% 100%, 0% 85.54%); 
         }
 
-        /* Wersja mobilna: zjeżdżamy mocno w dół z zachowaniem idealnego pochylenia i proporcji */
+        /* Wersja mobilna: ekstremalnie mocne obniżenie na sam dół (top: 85%) */
         @media (max-width: 768px) {
             .monitor-screen {
-                top: 78% !important; 
-                left: 15% !important;
-                width: 70% !important;
-                height: 15% !important;
+                top: 85% !important; 
+                left: 10% !important;
+                width: 80% !important;
+                height: 14% !important;
                 transform: rotate(5deg) !important;
             }
         }
@@ -312,7 +312,7 @@
                 logoutBtn.style.display = 'inline-block';
             } else {
                 loginBtn.textContent = '[ KONTO: GUEST ]';
-                logoutBtn.style.display = 'none';
+                loginBtn.style.display = 'none';
             }
         }
 
