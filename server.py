@@ -43,6 +43,14 @@ def serve_static(filename):
         return send_from_directory(BASE_DIR, filename)
     return "Plik nie istnieje", 404
 
+# --- NOWY ENDPOINT SPRAWDZAJĄCY STATUS SESJI NA KAŻDYM URZĄDZENIU ---
+@app.route('/api/status', methods=['GET'])
+def api_status():
+    user = session.get('user')
+    if user:
+        return jsonify({'logged': True, 'user': user})
+    return jsonify({'logged': False, 'user': 'GUEST'})
+
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.get_json() or {}
@@ -55,7 +63,6 @@ def api_login():
     users = load_json(USERS_FILE, {})
     hashed_pass = hash_password(password)
 
-    # BLOKADA: Jeśli użytkownik nie istnieje, NIE tworzymy go automatycznie, tylko odrzucamy!
     if username not in users:
         return jsonify({'status': 'error', 'message': 'Konto nie istnieje. Najpierw się zarejestruj!'}), 401
 
