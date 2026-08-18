@@ -63,7 +63,7 @@
             box-shadow: 0 0 15px #00ffcc;
         }
 
-        /* MODAL LOGOWANIA / REJESTRACJI (WYSKAKUJE NA KLIKNIĘCIE) */
+        /* OKNO LOGOWANIA / REJESTRACJI (UKRYTE DOMYŚLNIE) */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -208,7 +208,7 @@
         </div>
     </div>
 
-    <!-- OKNO LOGOWANIA / REJESTRACJI (MODAL) -->
+    <!-- OKNO LOGOWANIA / REJESTRACJI -->
     <div class="modal-overlay" id="auth-modal">
         <div class="login-container">
             <button class="close-modal" onclick="closeAuthModal()">&times;</button>
@@ -238,10 +238,8 @@
     const API_URL = 'https://halogensworld.onrender.com';
     let isRegisterMode = false;
 
-    // Sprawdzenie stanu logowania po załadowaniu strony
-    window.addEventListener('DOMContentLoaded', () => {
-        updateUI();
-    });
+    // Aktualizacja statusu przy starcie (bez otwierania okna)
+    updateUI();
 
     function updateUI() {
         const loggedUser = localStorage.getItem('halogen_logged_user');
@@ -271,7 +269,6 @@
         if (loggedUser) {
             window.location.href = targetUrl;
         } else {
-            alert('Musisz się najpierw zalogować, aby przejść do czatu!');
             openAuthModal();
         }
     }
