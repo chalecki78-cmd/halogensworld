@@ -5,109 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Jetson Hub - System Halogen AI</title>
     <style>
-        body { 
-            margin: 0; padding: 0; width: 100vw; 
-            height: 100vh; 
-            height: 100dvh; 
-            background: #000;
-            font-family: 'Courier New', Courier, monospace; color: #00ffcc; 
-            overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-            position: fixed;
-        }
-
-        .app-viewport {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh; 
-            height: 100dvh; 
-            background-image: url('IMG/strona_startowa_tlo.png');
-            background-repeat: no-repeat;
-            background-position: center center;
-            background-size: 100% 100%;
-        }
-
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; height: 100dvh; background: #000; font-family: 'Courier New', Courier, monospace; color: #00ffcc; overflow: hidden; -webkit-font-smoothing: antialiased; position: fixed; }
+        .app-viewport { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background-image: url('IMG/strona_startowa_tlo.png'); background-repeat: no-repeat; background-position: center center; background-size: 100% 100%; }
         .rotate-hint { display: none; }
         @media (max-width: 1024px) and (orientation: portrait) {
             body > *:not(.rotate-hint):not(#halogen-chat-container) { display: none !important; }
-            .rotate-hint {
-                display: flex; align-items: center; justify-content: center;
-                position: fixed; top: 0; left: 0; width: 100vw;
-                height: 100vh; height: 100dvh;
-                text-align: center; color: #00ffcc; padding: 20px; font-size: 14px;
-                z-index: 2000;
-            }
+            .rotate-hint { display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; text-align: center; color: #00ffcc; padding: 20px; font-size: 14px; z-index: 2000; }
         }
-        
         .top-left-chat-label { position: absolute; top: 25px; left: 35px; border: 1px solid #00ffcc; color: #00ffcc; padding: 3px 8px; font-size: 9px; font-weight: bold; border-radius: 2px; z-index: 100; cursor: pointer; background: rgba(0, 10, 10, 0.85); text-decoration: none; }
         .top-left-chat-label:hover { background: #00ffcc; color: #000; }
-        
         .system-auth-bar { position: absolute; top: 25px; right: 35px; display: flex; align-items: center; gap: 10px; font-size: 10px; color: #00ffcc; z-index: 100; background: rgba(0, 10, 10, 0.85); padding: 6px 12px; border: 1px solid rgba(0, 255, 204, 0.4); border-radius: 4px; }
         .status-dot { width: 6px; height: 6px; background-color: #00ffcc; border-radius: 50%; box-shadow: 0 0 4px #00ffcc; }
         .auth-btn, .help-btn, .logout-btn, .lang-btn { background: transparent; border: 1px solid #00ffcc; color: #00ffcc; padding: 3px 8px; font-size: 9px; cursor: pointer; border-radius: 2px; text-decoration: none; display: inline-block; }
         .auth-btn:hover, .help-btn:hover, .lang-btn:hover { background: #00ffcc; color: #000; }
         .logout-btn { border-color: #ff4444; color: #ff4444; }
         .logout-btn:hover { background: #ff4444; color: #000; }
-        
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #050b0b; border: 2px solid #00ffcc; padding: 25px; width: 320px; border-radius: 6px; }
-        
-        .monitor-screen { 
-            position: absolute; 
-            top: 43%; 
-            left: 62.5%; 
-            width: 24.8%; 
-            height: 15%; 
-            transform: rotate(4deg); 
-            display: flex; 
-            gap: 10px; 
-            align-items: stretch;
-            justify-content: center;
-        }
-
-        .monitor-frame { 
-            flex: 1; 
-            border: 1px solid rgba(0, 255, 204, 0.5); 
-            background: #000; 
-            cursor: pointer; 
-            overflow: hidden;
-        }
-
-        .monitor-screen .monitor-frame:first-child {
-            clip-path: polygon(0% 22%, 100% 8%, 100% 100%, 0% 100%);
-        }
-        .monitor-screen .monitor-frame:last-child {
-            clip-path: polygon(0% 8%, 100% 0%, 100% 100%, 0% 100%);
-        }
-        
-        .monitor-frame img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-        }
-        
-        #halogen-chat-container {
-            display: none; 
-            position: absolute; 
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60%; 
-            height: 100%; 
-            background: #0a0a0a; 
-            border: 2px solid #00ffcc; 
-            z-index: 9999; 
-            flex-direction: column;
-        }
-
-        @media (max-width: 480px) {
-            #halogen-chat-container {
-                width: 92%;
-            }
-        }
-
+        .monitor-screen { position: absolute; top: 43%; left: 62.5%; width: 24.8%; height: 15%; transform: rotate(4deg); display: flex; gap: 10px; align-items: stretch; justify-content: center; }
+        .monitor-frame { flex: 1; border: 1px solid rgba(0, 255, 204, 0.5); background: #000; cursor: pointer; overflow: hidden; }
+        .monitor-screen .monitor-frame:first-child { clip-path: polygon(0% 22%, 100% 8%, 100% 100%, 0% 100%); }
+        .monitor-screen .monitor-frame:last-child { clip-path: polygon(0% 8%, 100% 0%, 100% 100%, 0% 100%); }
+        .monitor-frame img { width: 100%; height: 100%; object-fit: cover; }
+        #halogen-chat-container { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60%; height: 100%; background: #0a0a0a; border: 2px solid #00ffcc; z-index: 9999; flex-direction: column; }
+        @media (max-width: 480px) { #halogen-chat-container { width: 92%; } }
         .chat-layout { display: flex; flex: 1; overflow: hidden; height: calc(100% - 85px); }
         .users-sidebar { width: 130px; border-right: 1px solid #00ffcc; background: #030606; padding: 5px; overflow-y: auto; font-size: 10px; flex-shrink: 0; }
         .user-item { cursor: pointer; padding: 3px 4px; margin-bottom: 2px; border-radius: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #00ffcc; }
@@ -115,12 +36,9 @@
     </style>
 </head>
 <body>
-
     <div class="rotate-hint" id="t-rotate-hint">OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ</div>
-
     <div class="app-viewport">
         <a href="#" class="top-left-chat-label" id="t-chat" onclick="toggleChat(event)">🔒 CZAT</a>
-
         <div class="system-auth-bar">
             <span class="status-dot"></span> <span id="t-status">STATUS:</span>
             <button class="auth-btn" id="login-trigger-btn" onclick="openAuthModal('login')">[ KONTO: GUEST ]</button>
@@ -128,19 +46,16 @@
             <button class="help-btn" id="t-help" onclick="openAuthModal('help')">[ POMOC ]</button>
             <button class="logout-btn" id="logout-btn" onclick="handleLogout()" style="display: none;">[ WYLOGUJ ]</button>
         </div>
-
         <div class="monitor-screen">
             <a href="soccer.html" class="monitor-frame"><img src="IMG/soccer_battle_tlo1.jpg" alt="Soccer"></a>
             <a href="carx.html" class="monitor-frame"><img src="IMG/carx_tlo.jpg" alt="CarX"></a>
         </div>
     </div>
-
     <div id="halogen-chat-container">
         <div style="background: #00ffcc; color: #000; padding: 8px; font-weight: bold; display: flex; justify-content: space-between; flex-shrink: 0;">
             <span id="chat-title">HALOGEN CHAT</span>
             <button onclick="toggleChat(event)" style="background: #000; color: #00ffcc; border: 1px solid #000; cursor: pointer; font-weight: bold;">X</button>
         </div>
-        
         <div style="padding: 5px; background: #050b0b; border-bottom: 1px solid #00ffcc; display: flex; gap: 5px; align-items: center; flex-shrink: 0;">
             <select id="chat-target" style="flex: 1; background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 4px; font-family: 'Courier New'; font-size: 11px;">
                 <option id="t-opt-global" value="global">Pokój: Globalny</option>
@@ -149,7 +64,6 @@
             </select>
             <input type="text" id="recipient-name" placeholder="Nick odbiorcy" style="width: 90px; display: none; background: #000; color: #fff; border: 1px solid #00ffcc; padding: 4px; font-size: 11px;" readonly>
         </div>
-
         <div class="chat-layout">
             <div class="users-sidebar">
                 <div id="t-online-label" style="font-weight: bold; border-bottom: 1px dashed #00ffcc; margin-bottom: 4px; padding-bottom: 2px; color: #00ffcc;">ONLINE:</div>
@@ -157,20 +71,17 @@
             </div>
             <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 10px; color: #00ffcc; font-size: 12px; word-break: break-all; background: #050b0b;"></div>
         </div>
-        
         <div style="display: flex; padding: 8px; border-top: 1px solid #00ffcc; background: #050b0b; flex-shrink: 0;">
             <input type="text" id="chat-input" placeholder="Wpisz wiadomość..." style="flex: 1; background: #000; border: 1px solid #00ffcc; color: #fff; padding: 6px; font-size: 11px;">
             <button onclick="sendChatMessage()" style="background: #00ffcc; color: #000; border: none; padding: 0 12px; font-weight: bold; cursor: pointer;">OK</button>
         </div>
     </div>
-
     <div id="auth-modal" class="modal-overlay" onclick="handleModalOutsideClick(event)">
         <div id="help-form" class="modal-content" style="display: none;">
             <h2 id="t-help-title" style="margin-top: 0; font-size: 14px;">WSPARCIE SYSTEMOWE</h2>
             <p id="t-help-desc" style="font-size: 11px;">Kontakt: Chalecki78@gmail.com</p>
             <button id="t-understood-btn" onclick="closeModal()" style="background: #00ffcc; color: #000; border: none; padding: 8px 15px; font-weight: bold; cursor: pointer; font-family: 'Courier New'; width: 100%;">ZROZUMIAŁEM</button>
         </div>
-
         <div id="login-form" class="modal-content" style="display: none;">
             <h2 style="margin-top: 0; font-size: 14px; border-bottom: 1px solid #00ffcc; padding-bottom: 5px;">PANEL LOGOWANIA</h2>
             <div style="margin-bottom: 8px; font-size: 11px;">
@@ -188,7 +99,6 @@
                 <button onclick="closeModal()" style="background: transparent; color: #888; border: 1px solid #444; padding: 5px; cursor: pointer; font-family: 'Courier New'; width: 100%; font-size: 10px;">ANULUJ</button>
             </div>
         </div>
-
         <div id="register-form" class="modal-content" style="display: none;">
             <h2 style="margin-top: 0; font-size: 14px; border-bottom: 1px solid #00ffcc; padding-bottom: 5px;">NOWA REJESTRACJA</h2>
             <div style="margin-bottom: 8px; font-size: 11px;">
@@ -206,18 +116,15 @@
             </div>
         </div>
     </div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
         let socket = null;
         let currentLang = 'PL';
         const BACKEND_URL = 'https://halogensworld.onrender.com';
-
         const translations = {
             PL: { rotateHint: "OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ", chatLabelLocked: "🔒 CZAT", chatLabelUnlocked: "CZAT", status: "STATUS:", account: "KONTO", guest: "GUEST", help: "[ POMOC ]", logout: "[ WYLOGUJ ]", helpTitle: "WSPARCIE SYSTEMOWE", helpDesc: "Kontakt: Chalecki78@gmail.com", understood: "ZROZUMIAŁEM", chatTitle: "HALOGEN CHAT", roomGlobal: "Pokój: Globalny", roomTech: "Pokój: Techniczny", roomPW: "Prywatna wiadomość (Szept)", recipientPlaceholder: "Nick odbiorcy", onlineLabel: "ONLINE:", chatInputPlaceholder: "Wpisz wiadomość...", choosePwAlert: "Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!", guestBlockedChat: "Musisz się zalogować, aby odblokować i otworzyć czat!" },
-            EN: { rotateHint: "ROTATE YOUR DEVICE TO CONTINUE", chatLabelLocked: "🔒 CHAT", chatLabelUnlocked: "CHAT", status: "STATUS:", account: "ACCOUNT", guest: "GUEST", help: "[ HELP ]", logout: "[ LOGOUT ]", helpTitle: "SYSTEM SUPPORT", helpDesc: "Contact: Chalecki78@gmail.com", understood: "UNDERSTOOD", chatTitle: "HALOGEN CHAT", roomGlobal: "Room: Global", roomTech: "Room: Technical", roomPW: "Private message (Whisper)", recipientPlaceholder: "Recipient nick", onlineLabel: "ONLINE:", chatInputPlaceholder: "Type a message...", choosePwAlert: "Select a user from the list on the left to send a private message!", guestBlockedChat: "You must be logged in to unlock and open chat!" }
+            EN: { rotateHint: "ROTATE YOUR DEVICE TO CONTINUE", chatLabelLocked: "🔒 CHAT", chatLabelUnlocked: "CHAT", status: "STATUS:", account: "ACCOUNT", guest: "GUEST", help: "[ HELP ]", logout: "[ LOGOUT ]", helpTitle: "SYSTEM SUPPORT", helpDesc: "Contact: Chalecki78@gmail.com", understood: "UNDERSTOOD", chatTitle: "HALOGEN CHAT", roomGlobal: "Room: Global", roomTech: "Room: Technical", roomPW: "Private message (Whisper)", recipientPlaceholder: "Recipient nick", onlineLabel: "ONLINE:", chatInputPlaceholder: "Type a message...", choosePwAlert: "Select a user from the left to send a private message!", guestBlockedChat: "You must be logged in to unlock and open chat!" }
         };
-
         function applyLanguage() {
             const t = translations[currentLang];
             document.getElementById('t-rotate-hint').textContent = t.rotateHint;
@@ -233,10 +140,8 @@
             document.getElementById('recipient-name').placeholder = t.recipientPlaceholder;
             document.getElementById('t-online-label').textContent = t.onlineLabel;
             document.getElementById('chat-input').placeholder = t.chatInputPlaceholder;
-            updateAccountButton();
-            updateChatButtonLabel();
+            updateAccountButton(); updateChatButtonLabel();
         }
-
         function updateChatButtonLabel() {
             const t = translations[currentLang];
             const chatEl = document.getElementById('t-chat');
@@ -244,45 +149,22 @@
             const isLogged = loggedUser && loggedUser !== 'GUEST' && loggedUser !== 'undefined' && loggedUser !== '';
             chatEl.textContent = isLogged ? t.chatLabelUnlocked : t.chatLabelLocked;
         }
-
         function updateAccountButton() {
             const t = translations[currentLang];
             const loggedUser = localStorage.getItem('halogen_logged_user');
             const loginBtn = document.getElementById('login-trigger-btn');
-            if (loggedUser && loggedUser !== 'GUEST' && loggedUser !== 'undefined') {
-                loginBtn.textContent = `[ ${t.account}: ${loggedUser} ]`;
-            } else {
-                loginBtn.textContent = `[ ${t.account}: ${t.guest} ]`;
-            }
+            loginBtn.textContent = (loggedUser && loggedUser !== 'GUEST' && loggedUser !== 'undefined') ? `[ ${t.account}: ${loggedUser} ]` : `[ ${t.account}: ${t.guest} ]`;
         }
-        
         function openAuthModal(type) {
             const modal = document.getElementById('auth-modal');
-            const helpForm = document.getElementById('help-form');
-            const loginForm = document.getElementById('login-form');
             modal.style.display = 'flex';
-            helpForm.style.display = (type === 'help') ? 'block' : 'none';
-            loginForm.style.display = (type === 'login') ? 'block' : 'none';
-            if (type === 'login') {
-                setTimeout(() => document.getElementById('auth-username-input').focus(), 100);
-            }
+            document.getElementById('help-form').style.display = (type === 'help') ? 'block' : 'none';
+            document.getElementById('login-form').style.display = (type === 'login') ? 'block' : 'none';
         }
-
-        function switchRegisterView() {
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('register-form').style.display = 'block';
-            setTimeout(() => document.getElementById('register-username-input').focus(), 100);
-        }
-
-        function switchLoginView() {
-            document.getElementById('register-form').style.display = 'none';
-            document.getElementById('login-form').style.display = 'block';
-            setTimeout(() => document.getElementById('auth-username-input').focus(), 100);
-        }
-
+        function switchRegisterView() { document.getElementById('login-form').style.display = 'none'; document.getElementById('register-form').style.display = 'block'; }
+        function switchLoginView() { document.getElementById('register-form').style.display = 'none'; document.getElementById('login-form').style.display = 'block'; }
         function closeModal() { document.getElementById('auth-modal').style.display = 'none'; }
-        function handleModalOutsideClick(event) { if (event.target.id === 'auth-modal') closeModal(); }
-
+        function handleModalOutsideClick(e) { if (e.target.id === 'auth-modal') closeModal(); }
         async function performRegister() {
             const inputVal = document.getElementById('register-username-input').value.trim();
             const passVal = document.getElementById('register-password-input').value;
@@ -290,65 +172,45 @@
             try {
                 const response = await fetch(`${BACKEND_URL}/api/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: inputVal, pass: passVal }) });
                 const data = await response.json();
-                if (response.ok && data.status === 'success') {
-                    alert('Zarejestrowano! Zaloguj się.');
-                    switchLoginView();
-                } else { errDiv.textContent = data.message || 'Błąd.'; }
+                if (response.ok && data.status === 'success') { alert('Zarejestrowano!'); switchLoginView(); } else { errDiv.textContent = data.message; }
             } catch(e) { errDiv.textContent = 'Błąd serwera.'; }
         }
-
         async function performLogin() {
             const inputVal = document.getElementById('auth-username-input').value.trim();
             const passVal = document.getElementById('auth-password-input').value;
             const errDiv = document.getElementById('auth-error-msg');
+            const loginBtn = document.querySelector('#login-form button');
             if (!inputVal) return;
-            if (inputVal.toUpperCase() === 'GUEST') {
-                localStorage.setItem('halogen_logged_user', 'GUEST');
-                window.location.reload(); return;
-            }
+            errDiv.style.color = "#00ffcc";
+            errDiv.textContent = "Serwer się budzi (może to potrwać 30s)...";
+            loginBtn.textContent = "CZEKAJ...";
+            loginBtn.disabled = true;
             try {
                 const response = await fetch(`${BACKEND_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: inputVal, pass: passVal }) });
                 const data = await response.json();
                 if (response.ok && data.status === 'success') {
                     localStorage.setItem('halogen_logged_user', data.user);
                     window.location.reload();
-                } else { errDiv.textContent = data.message || 'Błąd logowania.'; }
-            } catch(e) { errDiv.textContent = 'Błąd serwera.'; }
+                } else { errDiv.style.color = "#ff4444"; errDiv.textContent = data.message; loginBtn.textContent = "ZALOGUJ SIĘ"; loginBtn.disabled = false; }
+            } catch(e) { errDiv.style.color = "#ff4444"; errDiv.textContent = 'Błąd połączenia.'; loginBtn.textContent = "ZALOGUJ SIĘ"; loginBtn.disabled = false; }
         }
-
         async function handleLogout() {
-            const currentUser = getCurrentUser();
+            const currentUser = localStorage.getItem('halogen_logged_user');
             await fetch(`${BACKEND_URL}/api/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: currentUser }) }).catch(()=>{});
             localStorage.removeItem('halogen_logged_user');
             window.location.reload();
         }
-
-        function triggerLogoutBeacon() {
-            const currentUser = getCurrentUser();
-            if (currentUser && currentUser !== 'GUEST') {
-                const payload = JSON.stringify({ user: currentUser });
-                const blob = new Blob([payload], { type: 'application/json' });
-                if (navigator.sendBeacon) navigator.sendBeacon(`${BACKEND_URL}/api/logout`, blob);
-                localStorage.removeItem('halogen_logged_user');
-            }
-        }
-
-        window.addEventListener('beforeunload', triggerLogoutBeacon);
-        window.addEventListener('pagehide', triggerLogoutBeacon);
-
         function initChatSocket() {
             if (socket) return;
             socket = io(BACKEND_URL);
             socket.on('connect', () => {
-                let currentUser = getCurrentUser();
-                if (currentUser !== 'GUEST') socket.emit('register_socket', { user: currentUser });
+                let currentUser = localStorage.getItem('halogen_logged_user');
+                if (currentUser && currentUser !== 'GUEST') socket.emit('register_socket', { user: currentUser });
             });
             socket.on('update_user_list', (users) => {
-                const usersListDiv = document.getElementById('online-users-list');
-                usersListDiv.innerHTML = '';
-                users.filter(u => u && u !== 'GUEST').forEach(u => {
-                    if (u !== getCurrentUser()) usersListDiv.innerHTML += `<div class="user-item" onclick="startPrivateChat('${u}')">@ ${u}</div>`;
-                });
+                const list = document.getElementById('online-users-list');
+                list.innerHTML = '';
+                users.forEach(u => list.innerHTML += `<div class="user-item">@ ${u}</div>`);
             });
             socket.on('new_message', (data) => {
                 const msgs = document.getElementById('chat-messages');
@@ -356,41 +218,22 @@
                 msgs.scrollTop = msgs.scrollHeight;
             });
         }
-
-        function getCurrentUser() {
-            let u = localStorage.getItem('halogen_logged_user');
-            return (!u || u === 'undefined') ? 'GUEST' : u;
-        }
-
-        function checkLoginStatus() {
-            const loggedUser = localStorage.getItem('halogen_logged_user');
-            console.log("DEBUG: Aktualny użytkownik w localStorage to:", loggedUser);
-            const isLogged = loggedUser && loggedUser !== 'GUEST' && loggedUser !== 'undefined';
-            document.getElementById('logout-btn').style.display = isLogged ? 'inline-block' : 'none';
-            updateAccountButton();
-            updateChatButtonLabel();
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
-            if (getCurrentUser() !== 'GUEST') initChatSocket();
-            checkLoginStatus();
+            if (localStorage.getItem('halogen_logged_user') && localStorage.getItem('halogen_logged_user') !== 'GUEST') initChatSocket();
             applyLanguage();
         });
-
         function toggleChat(e) {
-            if (getCurrentUser() === 'GUEST') { openAuthModal('login'); return; }
+            if (!localStorage.getItem('halogen_logged_user') || localStorage.getItem('halogen_logged_user') === 'GUEST') { openAuthModal('login'); return; }
             const c = document.getElementById('halogen-chat-container');
             c.style.display = (c.style.display === 'flex') ? 'none' : 'flex';
         }
-
         function sendChatMessage() {
             const input = document.getElementById('chat-input');
             if (input.value.trim() !== '') {
-                socket.emit('chat_msg', { msg: input.value.trim(), user: getCurrentUser(), room: document.getElementById('chat-target').value });
+                socket.emit('chat_msg', { msg: input.value.trim(), user: localStorage.getItem('halogen_logged_user'), room: document.getElementById('chat-target').value });
                 input.value = '';
             }
         }
-
         function toggleLanguage() { currentLang = (currentLang === 'PL') ? 'EN' : 'PL'; applyLanguage(); }
     </script>
 </body>
