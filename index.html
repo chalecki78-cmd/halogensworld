@@ -211,6 +211,7 @@
     <script>
         let socket = null;
         let currentLang = 'PL';
+        const BACKEND_URL = 'https://halogensworld.onrender.com';
 
         const translations = {
             PL: { rotateHint: "OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ", chatLabelLocked: "🔒 CZAT", chatLabelUnlocked: "CZAT", status: "STATUS:", account: "KONTO", guest: "GUEST", help: "[ POMOC ]", logout: "[ WYLOGUJ ]", helpTitle: "WSPARCIE SYSTEMOWE", helpDesc: "Kontakt: Chalecki78@gmail.com", understood: "ZROZUMIAŁEM", chatTitle: "HALOGEN CHAT", roomGlobal: "Pokój: Globalny", roomTech: "Pokój: Techniczny", roomPW: "Prywatna wiadomość (Szept)", recipientPlaceholder: "Nick odbiorcy", onlineLabel: "ONLINE:", chatInputPlaceholder: "Wpisz wiadomość...", choosePwAlert: "Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!", guestBlockedChat: "Musisz się zalogować, aby odblokować i otworzyć czat!" },
@@ -287,7 +288,7 @@
             const passVal = document.getElementById('register-password-input').value;
             const errDiv = document.getElementById('reg-error-msg');
             try {
-                const response = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: inputVal, pass: passVal }) });
+                const response = await fetch(`${BACKEND_URL}/api/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: inputVal, pass: passVal }) });
                 const data = await response.json();
                 if (response.ok && data.status === 'success') {
                     alert('Zarejestrowano! Zaloguj się.');
@@ -306,7 +307,7 @@
                 window.location.reload(); return;
             }
             try {
-                const response = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: inputVal, pass: passVal }) });
+                const response = await fetch(`${BACKEND_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: inputVal, pass: passVal }) });
                 const data = await response.json();
                 if (response.ok && data.status === 'success') {
                     localStorage.setItem('halogen_logged_user', data.user);
@@ -317,7 +318,7 @@
 
         async function handleLogout() {
             const currentUser = getCurrentUser();
-            await fetch('/api/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: currentUser }) }).catch(()=>{});
+            await fetch(`${BACKEND_URL}/api/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: currentUser }) }).catch(()=>{});
             localStorage.removeItem('halogen_logged_user');
             window.location.reload();
         }
@@ -327,7 +328,7 @@
             if (currentUser && currentUser !== 'GUEST') {
                 const payload = JSON.stringify({ user: currentUser });
                 const blob = new Blob([payload], { type: 'application/json' });
-                if (navigator.sendBeacon) navigator.sendBeacon('/api/logout', blob);
+                if (navigator.sendBeacon) navigator.sendBeacon(`${BACKEND_URL}/api/logout`, blob);
                 localStorage.removeItem('halogen_logged_user');
             }
         }
@@ -337,7 +338,7 @@
 
         function initChatSocket() {
             if (socket) return;
-            socket = io();
+            socket = io(BACKEND_URL);
             socket.on('connect', () => {
                 let currentUser = getCurrentUser();
                 if (currentUser !== 'GUEST') socket.emit('register_socket', { user: currentUser });
