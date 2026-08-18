@@ -15,13 +15,11 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 USERS_FILE = os.path.join(BASE_DIR, 'users.json')
 SESSIONS_FILE = os.path.join(BASE_DIR, 'active_sessions.json')
 
-# --- BEZPIECZNA INICJALIZACJA (Nie nadpisuje istniejących użytkowników!) ---
 def init_storage():
     if not os.path.exists(USERS_FILE):
         with open(USERS_FILE, 'w', encoding='utf-8') as f:
             json.dump({}, f, ensure_ascii=False, indent=4)
             
-    # Sesje czyscimy zawsze przy starcie serwera, bo nikt nie jest wtedy zalogowany
     with open(SESSIONS_FILE, 'w', encoding='utf-8') as f:
         json.dump([], f, ensure_ascii=False, indent=4)
 
@@ -55,7 +53,6 @@ def serve_static(filename):
         return send_from_directory(BASE_DIR, filename)
     return "Plik nie istnieje", 404
 
-# --- ENDPOINT DO PODGLĄDU STANÓW (DEBUG) ---
 @app.route('/api/debug_data', methods=['GET'])
 def api_debug():
     users = load_json(USERS_FILE, {})
@@ -158,7 +155,12 @@ def handle_connect():
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    if request.sid in connected_users:
+    username = connected_users.get(request.sid)
+    if username:
+        active = load_json(SESSIONS_FILE, [])
+        if username in active:
+            active.remove(username)
+            save_json(SESSIONS_FILE, active)
         del connected_users[request.sid]
     broadcast_user_list()
 
