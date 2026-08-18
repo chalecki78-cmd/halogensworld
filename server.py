@@ -14,7 +14,7 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 USERS_FILE = os.path.join(BASE_DIR, 'users.json')
 
-# Pamięć sesji w RAMie serwera – stabilna i odporna na restarty dysku Render
+# Stabilne sesje w pamięci RAM serwera (odporne na restarty dysku Render)
 ACTIVE_SESSIONS = set()
 
 def init_storage():
@@ -60,16 +60,6 @@ def api_debug():
         'obecnie_zalogowani': list(ACTIVE_SESSIONS)
     })
 
-@app.route('/api/status', methods=['POST', 'GET'])
-def api_status():
-    data = request.get_json() if request.is_json else {}
-    user = data.get('user') or request.args.get('user')
-    
-    if user and user in ACTIVE_SESSIONS:
-        return jsonify({'logged': True, 'user': user})
-            
-    return jsonify({'logged': False, 'user': 'GUEST'})
-
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.get_json() or {}
@@ -96,7 +86,7 @@ def api_logout():
     data = request.get_json() or {}
     username = data.get('user')
     if username and username in ACTIVE_SESSIONS:
-        ACTIVE_SESSIONS.remove(username)
+        ACTIVE_SESSIONS.discard(username)
         
         for sid, uname in list(connected_users.items()):
             if uname == username:
@@ -142,7 +132,7 @@ def handle_connect():
 def handle_disconnect():
     username = connected_users.get(request.sid)
     if username and username in ACTIVE_SESSIONS:
-        ACTIVE_SESSIONS.remove(username)
+        ACTIVE_SESSIONS.discard(username)
         del connected_users[request.sid]
     broadcast_user_list()
 
