@@ -47,7 +47,12 @@ def serve_static(filename):
 def api_status():
     user = session.get('user')
     if user:
-        return jsonify({'logged': True, 'user': user})
+        active = load_json(SESSIONS_FILE, [])
+        if user in active:
+            return jsonify({'logged': True, 'user': user})
+        else:
+            # Sesja wygasła lub została zamknięta
+            session.pop('user', None)
     return jsonify({'logged': False, 'user': 'GUEST'})
 
 @app.route('/api/login', methods=['POST'])
@@ -67,9 +72,12 @@ def api_login():
 
     if users[username] == hashed_pass:
         active = load_json(SESSIONS_FILE, [])
+        
+        # BEZWZGLĘDNA BLOKADA: Sprawdzenie czy użytkownik widnieje jako aktywny
         if username in active:
             return jsonify({'status': 'error', 'message': 'Ten użytkownik jest już zalogowany na innym urządzeniu!'}), 401
         
+        # Przypisanie sesji i natychmiastowy zapis
         session['user'] = username
         active.append(username)
         save_json(SESSIONS_FILE, active)
@@ -139,6 +147,12 @@ def handle_register_socket(data):
     user = data.get('user') or session.get('user', 'GUEST')
     if not user or user == 'GUEST' or user == 'undefined' or user.strip() == '':
         return
+    
+    # Dodatkowa weryfikacja socketowa: jeśli użytkownik nie ma aktywnej sesji w pliku, odrzucamy rejestrację socketu
+    active = load_json(SESSIONS_FILE, [])
+    if user not in active:
+        return
+
     connected_users[request.sid] = user
     broadcast_user_list()
 
