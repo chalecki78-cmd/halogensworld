@@ -16,14 +16,18 @@
             position: fixed;
         }
 
-        /* WSPÓLNA WARSTWA TŁA I KAFELKÓW (Pełny ekran, 100% dopasowanie bez ucinania) */
+        /* WSPÓLNA WARSTWA TŁA I KAFELKÓW - tło zawsze rozciągnięte na 100% szerokości i 100%
+           wysokości ekranu (celowo zdeformowane, bez zachowania proporcji). Dzięki temu, że
+           .app-viewport ZAWSZE ma dokładnie wymiary 100vw x 100dvh, pozycje % kafelków
+           (.monitor-screen) są matematycznie IDENTYCZNE na każdej rozdzielczości - nie
+           potrzeba żadnych media queries dla pozycji. */
         .app-viewport {
             position: absolute;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh; /* fallback */
-            height: 100dvh; /* poprawna wysokość na mobile */
+            height: 100dvh; /* poprawna wysokość na mobile - kluczowe dla spójności % */
             background-image: url('IMG/strona_startowa_tlo.png');
             background-repeat: no-repeat;
             background-position: center center;
@@ -33,7 +37,13 @@
         .rotate-hint { display: none; }
         @media (max-width: 1024px) and (orientation: portrait) {
             body > *:not(.rotate-hint):not(#halogen-chat-container) { display: none !important; }
-            .rotate-hint { display: flex; align-items: center; justify-content: center; height: 100vh; height: 100dvh; text-align: center; color: #00ffcc; padding: 20px; font-size: 14px; }
+            .rotate-hint {
+                display: flex; align-items: center; justify-content: center;
+                position: fixed; top: 0; left: 0; width: 100vw;
+                height: 100vh; height: 100dvh;
+                text-align: center; color: #00ffcc; padding: 20px; font-size: 14px;
+                z-index: 2000;
+            }
         }
         
         .top-left-chat-label { position: absolute; top: 25px; left: 35px; border: 1px solid #00ffcc; color: #00ffcc; padding: 3px 8px; font-size: 9px; font-weight: bold; border-radius: 2px; z-index: 100; cursor: pointer; background: rgba(0, 10, 10, 0.85); text-decoration: none; }
@@ -61,28 +71,9 @@
             justify-content: center;
         }
 
-        /* 2. UKŁAD DLA TABLETÓW (np. iPad w landscape, szerokość do 1024px, wyższe niż telefon) */
-        @media (max-width: 1024px) and (min-height: 500px) {
-            .monitor-screen {
-                top: 55% !important; 
-                left: 35% !important; 
-                width: 45% !important; 
-                height: 14% !important;
-                transform: rotate(5deg) !important;
-            }
-        }
-
-        /* 3. UKŁAD DLA TELEFONÓW W LANDSCAPE (niska wysokość ekranu = typowy telefon położony poziomo) */
-        /* WARTOŚCI PONIŻEJ TRZEBA DOSTROIĆ NA REALNYM TELEFONIE - to punkt startowy, nie finalne liczby */
-        @media (max-width: 1024px) and (max-height: 499px) {
-            .monitor-screen {
-                top: 50% !important;
-                left: 55% !important;
-                width: 35% !important;
-                height: 22% !important;
-                transform: rotate(5deg) !important;
-            }
-        }
+        /* Media queries dla .monitor-screen NIE SĄ już potrzebne - .app-viewport ma zawsze
+           dokładnie 100vw x 100dvh, więc pozycje % są matematycznie identyczne na każdym
+           urządzeniu i rozdzielczości. */
 
         .monitor-frame { 
             flex: 1; 
@@ -128,8 +119,9 @@
 </head>
 <body>
 
+    <div class="rotate-hint">OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ</div>
+
     <div class="app-viewport">
-        <div class="rotate-hint">OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ</div>
         <a href="#" class="top-left-chat-label" id="t-chat" onclick="toggleChat(event)">CZAT</a>
 
         <div class="system-auth-bar">
