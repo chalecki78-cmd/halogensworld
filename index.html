@@ -154,6 +154,7 @@
             const loggedUser = localStorage.getItem('halogen_logged_user');
             const loginBtn = document.getElementById('login-trigger-btn');
             loginBtn.textContent = (loggedUser && loggedUser !== 'GUEST' && loggedUser !== 'undefined') ? `[ ${t.account}: ${loggedUser} ]` : `[ ${t.account}: ${t.guest} ]`;
+            document.getElementById('logout-btn').style.display = (loggedUser && loggedUser !== 'GUEST' && loggedUser !== 'undefined') ? 'inline-block' : 'none';
         }
         function openAuthModal(type) {
             const modal = document.getElementById('auth-modal');
@@ -172,27 +173,30 @@
             try {
                 const response = await fetch(`${BACKEND_URL}/api/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: inputVal, pass: passVal }) });
                 const data = await response.json();
-                if (response.ok && data.status === 'success') { alert('Zarejestrowano!'); switchLoginView(); } else { errDiv.textContent = data.message; }
+                if (response.ok && data.status === 'success') { alert('Zarejestrowano!'); switchLoginView(); } else { errDiv.textContent = data.message || 'Błąd rejestracji'; }
             } catch(e) { errDiv.textContent = 'Błąd serwera.'; }
         }
         async function performLogin() {
             const inputVal = document.getElementById('auth-username-input').value.trim();
             const passVal = document.getElementById('auth-password-input').value;
             const errDiv = document.getElementById('auth-error-msg');
-            const loginBtn = document.querySelector('#login-form button');
             if (!inputVal) return;
             errDiv.style.color = "#00ffcc";
-            errDiv.textContent = "Serwer się budzi (może to potrwać 30s)...";
-            loginBtn.textContent = "CZEKAJ...";
-            loginBtn.disabled = true;
+            errDiv.textContent = "Łączenie z serwerem (wybudzanie)...";
             try {
                 const response = await fetch(`${BACKEND_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: inputVal, pass: passVal }) });
                 const data = await response.json();
                 if (response.ok && data.status === 'success') {
                     localStorage.setItem('halogen_logged_user', data.user);
                     window.location.reload();
-                } else { errDiv.style.color = "#ff4444"; errDiv.textContent = data.message; loginBtn.textContent = "ZALOGUJ SIĘ"; loginBtn.disabled = false; }
-            } catch(e) { errDiv.style.color = "#ff4444"; errDiv.textContent = 'Błąd połączenia.'; loginBtn.textContent = "ZALOGUJ SIĘ"; loginBtn.disabled = false; }
+                } else { 
+                    errDiv.style.color = "#ff4444"; 
+                    errDiv.textContent = data.message || 'Błędne dane logowania!'; 
+                }
+            } catch(e) { 
+                errDiv.style.color = "#ff4444"; 
+                errDiv.textContent = 'Błąd sieci lub serwer śpi.'; 
+            }
         }
         async function handleLogout() {
             const currentUser = localStorage.getItem('halogen_logged_user');
