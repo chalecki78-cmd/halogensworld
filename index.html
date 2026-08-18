@@ -195,8 +195,7 @@
                 recipientPlaceholder: "Nick odbiorcy",
                 onlineLabel: "ONLINE:",
                 chatInputPlaceholder: "Wpisz wiadomość...",
-                choosePwAlert: "Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!",
-                guestChatAlert: "Dostęp do czatu wymaga zalogowania na konto! Przejdź do logowania."
+                choosePwAlert: "Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!"
             },
             EN: {
                 rotateHint: "ROTATE YOUR DEVICE TO CONTINUE",
@@ -217,8 +216,7 @@
                 recipientPlaceholder: "Recipient nick",
                 onlineLabel: "ONLINE:",
                 chatInputPlaceholder: "Type a message...",
-                choosePwAlert: "Select a user from the list on the left to send a private message!",
-                guestChatAlert: "Chat access requires logging into an account! Please go to login."
+                choosePwAlert: "Select a user from the list on the left to send a private message!"
             }
         };
 
@@ -366,12 +364,12 @@
             });
         });
 
+        // KLUCZOWA ZMIANA: Kliknięcie w czat sprawdza autoryzację. Jeśli brak loginu -> od razu login.html!
         function toggleChat(event) {
             if (event) event.preventDefault();
             const loggedUser = localStorage.getItem('halogen_logged_user');
             
             if (!loggedUser || loggedUser === 'GUEST' || loggedUser.trim() === '') {
-                alert(translations[currentLang].guestChatAlert);
                 window.location.href = 'login.html';
                 return;
             }
@@ -438,7 +436,7 @@
         function checkLoginStatus() {
             let loggedUser = localStorage.getItem('halogen_logged_user');
             
-            // Wymuszenie statusu GUEST, jeśli w pamięci nie ma żadnego użytkownika
+            // Jeśli brak zapisanego użytkownika, ustawiamy czysty stan GUEST (bez sztucznego logowania)
             if (!loggedUser || loggedUser.trim() === '') {
                 loggedUser = 'GUEST';
                 localStorage.setItem('halogen_logged_user', 'GUEST');
