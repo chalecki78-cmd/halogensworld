@@ -15,12 +15,13 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 USERS_FILE = os.path.join(BASE_DIR, 'users.json')
 SESSIONS_FILE = os.path.join(BASE_DIR, 'active_sessions.json')
 
-# --- INICJALIZACJA PLIKÓW PRZY STARCIE SERWERA ---
+# --- BEZPIECZNA INICJALIZACJA (Nie nadpisuje istniejących użytkowników!) ---
 def init_storage():
     if not os.path.exists(USERS_FILE):
         with open(USERS_FILE, 'w', encoding='utf-8') as f:
             json.dump({}, f, ensure_ascii=False, indent=4)
-    # Po każdym starcie serwera aktywne sesje są czyszczone, ponieważ kontener rusza na nowo
+            
+    # Sesje czyscimy zawsze przy starcie serwera, bo nikt nie jest wtedy zalogowany
     with open(SESSIONS_FILE, 'w', encoding='utf-8') as f:
         json.dump([], f, ensure_ascii=False, indent=4)
 
@@ -53,6 +54,16 @@ def serve_static(filename):
     if os.path.exists(file_path):
         return send_from_directory(BASE_DIR, filename)
     return "Plik nie istnieje", 404
+
+# --- ENDPOINT DO PODGLĄDU STANÓW (DEBUG) ---
+@app.route('/api/debug_data', methods=['GET'])
+def api_debug():
+    users = load_json(USERS_FILE, {})
+    active = load_json(SESSIONS_FILE, [])
+    return jsonify({
+        'wszyscy_zarejestrowani_uzytkownicy': list(users.keys()),
+        'obecnie_zalogowani': active
+    })
 
 @app.route('/api/status', methods=['GET'])
 def api_status():
