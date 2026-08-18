@@ -153,8 +153,9 @@
             const t = translations[currentLang];
             const loggedUser = localStorage.getItem('halogen_logged_user');
             const loginBtn = document.getElementById('login-trigger-btn');
-            loginBtn.textContent = (loggedUser && loggedUser !== 'GUEST' && loggedUser !== 'undefined') ? `[ ${t.account}: ${loggedUser} ]` : `[ ${t.account}: ${t.guest} ]`;
-            document.getElementById('logout-btn').style.display = (loggedUser && loggedUser !== 'GUEST' && loggedUser !== 'undefined') ? 'inline-block' : 'none';
+            const isLogged = loggedUser && loggedUser !== 'GUEST' && loggedUser !== 'undefined' && loggedUser !== '';
+            loginBtn.textContent = isLogged ? `[ ${t.account}: ${loggedUser} ]` : `[ ${t.account}: ${t.guest} ]`;
+            document.getElementById('logout-btn').style.display = isLogged ? 'inline-block' : 'none';
         }
         function openAuthModal(type) {
             const modal = document.getElementById('auth-modal');
@@ -182,7 +183,7 @@
             const errDiv = document.getElementById('auth-error-msg');
             if (!inputVal) return;
             errDiv.style.color = "#00ffcc";
-            errDiv.textContent = "Łączenie z serwerem (wybudzanie)...";
+            errDiv.textContent = "Logowanie...";
             try {
                 const response = await fetch(`${BACKEND_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: inputVal, pass: passVal }) });
                 const data = await response.json();
@@ -198,15 +199,15 @@
                 errDiv.textContent = 'Błąd sieci lub serwer śpi.'; 
             }
         }
-        async function handleLogout() {
+        function handleLogout() {
             const currentUser = localStorage.getItem('halogen_logged_user');
-            await fetch(`${BACKEND_URL}/api/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: currentUser }) }).catch(()=>{});
+            fetch(`${BACKEND_URL}/api/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: currentUser }) }).catch(()=>{});
             localStorage.removeItem('halogen_logged_user');
             window.location.reload();
         }
         function initChatSocket() {
             if (socket) return;
-            socket = io(BACKEND_URL);
+            socket = io(BACKEND_URL, { timeout: 10000 });
             socket.on('connect', () => {
                 let currentUser = localStorage.getItem('halogen_logged_user');
                 if (currentUser && currentUser !== 'GUEST') socket.emit('register_socket', { user: currentUser });
@@ -222,9 +223,29 @@
                 msgs.scrollTop = msgs.scrollHeight;
             });
         }
-        window.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('halogen_logged_user') && localStorage.getItem('halogen_logged_user') !== 'GUEST') initChatSocket();
+        // Weryfikacja sesji z serwerem, aby obsłużyć logowanie z różnych urządzeń
+        window.addEventListener('DOMContentLoaded', async () => {
             applyLanguage();
+            let currentUser = localStorage.getItem('halogen_logged_user');
+            if (currentUser && currentUser !== 'GUEST') {
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/check-session`, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ user: currentUser }) 
+                    });
+                    if (response.ok) {
+                        initChatSocket();
+                    } else {
+                        localStorage.removeItem('halogen_logged_user');
+                        updateAccountButton();
+                        updateChatButtonLabel();
+                    }
+                } catch(e) {
+                    // Jeśli serwer śpi, pozwalamy działać na lokalnym zapisu z przeglądarki, żeby użytkownik mógł korzystać z urządzenia
+                    initChatSocket();
+                }
+            }
         });
         function toggleChat(e) {
             if (!localStorage.getItem('halogen_logged_user') || localStorage.getItem('halogen_logged_user') === 'GUEST') { openAuthModal('login'); return; }
