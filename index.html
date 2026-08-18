@@ -119,7 +119,6 @@
     <div class="rotate-hint" id="t-rotate-hint">OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ</div>
 
     <div class="app-viewport">
-        <!-- Kafelek czatu z dynamiczną kłódką -->
         <a href="#" class="top-left-chat-label" id="t-chat" onclick="toggleChat(event)">🔒 CZAT</a>
 
         <div class="system-auth-bar">
@@ -136,7 +135,6 @@
         </div>
     </div>
 
-    <!-- OKNO CZATU (widoczne tylko po zalogowaniu) -->
     <div id="halogen-chat-container">
         <div style="background: #00ffcc; color: #000; padding: 8px; font-weight: bold; display: flex; justify-content: space-between; flex-shrink: 0;">
             <span id="chat-title">HALOGEN CHAT</span>
@@ -166,16 +164,13 @@
         </div>
     </div>
 
-    <!-- MODAL DO LOGOWANIA / REJESTRACJI / POMOCY -->
     <div id="auth-modal" class="modal-overlay" onclick="handleModalOutsideClick(event)">
-        <!-- Formularz Pomocy -->
         <div id="help-form" class="modal-content" style="display: none;">
             <h2 id="t-help-title" style="margin-top: 0; font-size: 14px;">WSPARCIE SYSTEMOWE</h2>
             <p id="t-help-desc" style="font-size: 11px;">Kontakt: Chalecki78@gmail.com</p>
             <button id="t-understood-btn" onclick="closeModal()" style="background: #00ffcc; color: #000; border: none; padding: 8px 15px; font-weight: bold; cursor: pointer; font-family: 'Courier New'; width: 100%;">ZROZUMIAŁEM</button>
         </div>
 
-        <!-- Formularz Logowania z Hasłem -->
         <div id="login-form" class="modal-content" style="display: none;">
             <h2 style="margin-top: 0; font-size: 14px; border-bottom: 1px solid #00ffcc; padding-bottom: 5px;">PANEL LOGOWANIA</h2>
             <div style="margin-bottom: 8px; font-size: 11px;">
@@ -194,7 +189,6 @@
             </div>
         </div>
 
-        <!-- Formularz Rejestracji z Hasłem -->
         <div id="register-form" class="modal-content" style="display: none;">
             <h2 style="margin-top: 0; font-size: 14px; border-bottom: 1px solid #00ffcc; padding-bottom: 5px;">NOWA REJESTRACJA</h2>
             <div style="margin-bottom: 8px; font-size: 11px;">
@@ -219,50 +213,8 @@
         let currentLang = 'PL';
 
         const translations = {
-            PL: {
-                rotateHint: "OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ",
-                chatLabelLocked: "🔒 CZAT",
-                chatLabelUnlocked: "CZAT",
-                status: "STATUS:",
-                account: "KONTO",
-                guest: "GUEST",
-                help: "[ POMOC ]",
-                logout: "[ WYLOGUJ ]",
-                helpTitle: "WSPARCIE SYSTEMOWE",
-                helpDesc: "Kontakt: Chalecki78@gmail.com",
-                understood: "ZROZUMIAŁEM",
-                chatTitle: "HALOGEN CHAT",
-                roomGlobal: "Pokój: Globalny",
-                roomTech: "Pokój: Techniczny",
-                roomPW: "Prywatna wiadomość (Szept)",
-                recipientPlaceholder: "Nick odbiorcy",
-                onlineLabel: "ONLINE:",
-                chatInputPlaceholder: "Wpisz wiadomość...",
-                choosePwAlert: "Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!",
-                guestBlockedChat: "Musisz się zalogować, aby odblokować i otworzyć czat!"
-            },
-            EN: {
-                rotateHint: "ROTATE YOUR DEVICE TO CONTINUE",
-                chatLabelLocked: "🔒 CHAT",
-                chatLabelUnlocked: "CHAT",
-                status: "STATUS:",
-                account: "ACCOUNT",
-                guest: "GUEST",
-                help: "[ HELP ]",
-                logout: "[ LOGOUT ]",
-                helpTitle: "SYSTEM SUPPORT",
-                helpDesc: "Contact: Chalecki78@gmail.com",
-                understood: "UNDERSTOOD",
-                chatTitle: "HALOGEN CHAT",
-                roomGlobal: "Room: Global",
-                roomTech: "Room: Technical",
-                roomPW: "Private message (Whisper)",
-                recipientPlaceholder: "Recipient nick",
-                onlineLabel: "ONLINE:",
-                chatInputPlaceholder: "Type a message...",
-                choosePwAlert: "Select a user from the list on the left to send a private message!",
-                guestBlockedChat: "You must be logged in to unlock and open chat!"
-            }
+            PL: { rotateHint: "OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ", chatLabelLocked: "🔒 CZAT", chatLabelUnlocked: "CZAT", status: "STATUS:", account: "KONTO", guest: "GUEST", help: "[ POMOC ]", logout: "[ WYLOGUJ ]", helpTitle: "WSPARCIE SYSTEMOWE", helpDesc: "Kontakt: Chalecki78@gmail.com", understood: "ZROZUMIAŁEM", chatTitle: "HALOGEN CHAT", roomGlobal: "Pokój: Globalny", roomTech: "Pokój: Techniczny", roomPW: "Prywatna wiadomość (Szept)", recipientPlaceholder: "Nick odbiorcy", onlineLabel: "ONLINE:", chatInputPlaceholder: "Wpisz wiadomość...", choosePwAlert: "Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!", guestBlockedChat: "Musisz się zalogować, aby odblokować i otworzyć czat!" },
+            EN: { rotateHint: "ROTATE YOUR DEVICE TO CONTINUE", chatLabelLocked: "🔒 CHAT", chatLabelUnlocked: "CHAT", status: "STATUS:", account: "ACCOUNT", guest: "GUEST", help: "[ HELP ]", logout: "[ LOGOUT ]", helpTitle: "SYSTEM SUPPORT", helpDesc: "Contact: Chalecki78@gmail.com", understood: "UNDERSTOOD", chatTitle: "HALOGEN CHAT", roomGlobal: "Room: Global", roomTech: "Room: Technical", roomPW: "Private message (Whisper)", recipientPlaceholder: "Recipient nick", onlineLabel: "ONLINE:", chatInputPlaceholder: "Type a message...", choosePwAlert: "Select a user from the list on the left to send a private message!", guestBlockedChat: "You must be logged in to unlock and open chat!" }
         };
 
         function applyLanguage() {
@@ -288,8 +240,7 @@
             const t = translations[currentLang];
             const chatEl = document.getElementById('t-chat');
             const loggedUser = localStorage.getItem('halogen_logged_user');
-            const isLogged = loggedUser && loggedUser !== 'GUEST' && loggedUser !== '';
-            
+            const isLogged = loggedUser && loggedUser !== 'GUEST' && loggedUser !== 'undefined' && loggedUser !== '';
             chatEl.textContent = isLogged ? t.chatLabelUnlocked : t.chatLabelLocked;
         }
 
@@ -297,7 +248,7 @@
             const t = translations[currentLang];
             const loggedUser = localStorage.getItem('halogen_logged_user');
             const loginBtn = document.getElementById('login-trigger-btn');
-            if (loggedUser && loggedUser !== 'GUEST') {
+            if (loggedUser && loggedUser !== 'GUEST' && loggedUser !== 'undefined') {
                 loginBtn.textContent = `[ ${t.account}: ${loggedUser} ]`;
             } else {
                 loginBtn.textContent = `[ ${t.account}: ${t.guest} ]`;
@@ -308,26 +259,10 @@
             const modal = document.getElementById('auth-modal');
             const helpForm = document.getElementById('help-form');
             const loginForm = document.getElementById('login-form');
-            const regForm = document.getElementById('register-form');
-
             modal.style.display = 'flex';
-            helpForm.style.display = 'none';
-            loginForm.style.display = 'none';
-            regForm.style.display = 'none';
-
-            if (type === 'help') {
-                helpForm.style.display = 'block';
-            } else if (type === 'login') {
-                const loggedUser = localStorage.getItem('halogen_logged_user');
-                if (loggedUser && loggedUser !== 'GUEST') {
-                    alert(`Jesteś już zalogowany jako ${loggedUser}.`);
-                    modal.style.display = 'none';
-                    return;
-                }
-                loginForm.style.display = 'block';
-                document.getElementById('auth-error-msg').textContent = '';
-                document.getElementById('auth-username-input').value = '';
-                document.getElementById('auth-password-input').value = '';
+            helpForm.style.display = (type === 'help') ? 'block' : 'none';
+            loginForm.style.display = (type === 'login') ? 'block' : 'none';
+            if (type === 'login') {
                 setTimeout(() => document.getElementById('auth-username-input').focus(), 100);
             }
         }
@@ -335,135 +270,64 @@
         function switchRegisterView() {
             document.getElementById('login-form').style.display = 'none';
             document.getElementById('register-form').style.display = 'block';
-            document.getElementById('reg-error-msg').textContent = '';
-            document.getElementById('register-username-input').value = '';
-            document.getElementById('register-password-input').value = '';
             setTimeout(() => document.getElementById('register-username-input').focus(), 100);
         }
 
         function switchLoginView() {
             document.getElementById('register-form').style.display = 'none';
             document.getElementById('login-form').style.display = 'block';
-            document.getElementById('auth-error-msg').textContent = '';
             setTimeout(() => document.getElementById('auth-username-input').focus(), 100);
         }
 
-        function closeModal() {
-            document.getElementById('auth-modal').style.display = 'none';
-        }
-
-        function handleModalOutsideClick(event) {
-            if (event.target.id === 'auth-modal') closeModal();
-        }
+        function closeModal() { document.getElementById('auth-modal').style.display = 'none'; }
+        function handleModalOutsideClick(event) { if (event.target.id === 'auth-modal') closeModal(); }
 
         async function performRegister() {
             const inputVal = document.getElementById('register-username-input').value.trim();
             const passVal = document.getElementById('register-password-input').value;
             const errDiv = document.getElementById('reg-error-msg');
-            
-            if (!inputVal || !passVal) {
-                errDiv.textContent = 'Wypełnij wszystkie pola!';
-                return;
-            }
-
             try {
-                const response = await fetch('/api/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user: inputVal, pass: passVal })
-                });
+                const response = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: inputVal, pass: passVal }) });
                 const data = await response.json();
-
                 if (response.ok && data.status === 'success') {
-                    alert(`Konto "${inputVal}" zostało pomyślnie zarejestrowane! Teraz możesz się zalogować.`);
+                    alert('Zarejestrowano! Zaloguj się.');
                     switchLoginView();
-                    document.getElementById('auth-username-input').value = inputVal;
-                } else if (data.message === 'exists') {
-                    errDiv.textContent = 'Ten nick jest już zarejestrowany! Wybierz inny.';
-                } else {
-                    errDiv.textContent = data.message || 'Błąd rejestracji.';
-                }
-            } catch(e) {
-                errDiv.textContent = 'Błąd połączenia z serwerem.';
-            }
+                } else { errDiv.textContent = data.message || 'Błąd.'; }
+            } catch(e) { errDiv.textContent = 'Błąd serwera.'; }
         }
 
         async function performLogin() {
             const inputVal = document.getElementById('auth-username-input').value.trim();
             const passVal = document.getElementById('auth-password-input').value;
             const errDiv = document.getElementById('auth-error-msg');
-
-            if (!inputVal) {
-                errDiv.textContent = 'Wpisz swój nick!';
-                return;
-            }
-
+            if (!inputVal) return;
             if (inputVal.toUpperCase() === 'GUEST') {
                 localStorage.setItem('halogen_logged_user', 'GUEST');
-                closeModal();
-                checkLoginStatus();
-                window.location.reload();
-                return;
+                window.location.reload(); return;
             }
-
-            if (!passVal) {
-                errDiv.textContent = 'Wpisz hasło!';
-                return;
-            }
-
             try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user: inputVal, pass: passVal })
-                });
+                const response = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: inputVal, pass: passVal }) });
                 const data = await response.json();
-
                 if (response.ok && data.status === 'success') {
                     localStorage.setItem('halogen_logged_user', data.user);
-                    closeModal();
-                    checkLoginStatus();
                     window.location.reload();
-                } else {
-                    errDiv.textContent = data.message || 'Błędny nick lub hasło!';
-                }
-            } catch(e) {
-                errDiv.textContent = 'Błąd połączenia z serwerem.';
-            }
+                } else { errDiv.textContent = data.message || 'Błąd logowania.'; }
+            } catch(e) { errDiv.textContent = 'Błąd serwera.'; }
         }
 
         async function handleLogout() {
             const currentUser = getCurrentUser();
-            try {
-                await fetch('/api/logout', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user: currentUser })
-                });
-            } catch(e) {}
-
+            await fetch('/api/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: currentUser }) }).catch(()=>{});
             localStorage.removeItem('halogen_logged_user');
-            checkLoginStatus();
-            document.getElementById('halogen-chat-container').style.display = 'none';
             window.location.reload();
         }
 
-        // --- AUTOMATYCZNE WYLOGOWANIE PRZY ZAMKNIĘCIU KARTY ---
         function triggerLogoutBeacon() {
             const currentUser = getCurrentUser();
             if (currentUser && currentUser !== 'GUEST') {
                 const payload = JSON.stringify({ user: currentUser });
-                if (navigator.sendBeacon) {
-                    const blob = new Blob([payload], { type: 'application/json' });
-                    navigator.sendBeacon('/api/logout', blob);
-                } else {
-                    fetch('/api/logout', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: payload,
-                        keepalive: true
-                    }).catch(() => {});
-                }
+                const blob = new Blob([payload], { type: 'application/json' });
+                if (navigator.sendBeacon) navigator.sendBeacon('/api/logout', blob);
                 localStorage.removeItem('halogen_logged_user');
             }
         }
@@ -473,176 +337,60 @@
 
         function initChatSocket() {
             if (socket) return;
-            socket = io({
-                transports: ['polling', 'websocket'],
-                reconnection: true,
-                reconnectionAttempts: Infinity,
-                reconnectionDelay: 1000
-            });
-
+            socket = io();
             socket.on('connect', () => {
                 let currentUser = getCurrentUser();
-                if (currentUser !== 'GUEST') {
-                    socket.emit('register_socket', { user: currentUser });
-                    socket.emit('join', { room: 'global', user: currentUser });
-                }
+                if (currentUser !== 'GUEST') socket.emit('register_socket', { user: currentUser });
             });
-
-            socket.on('update_user_list', function(users) {
+            socket.on('update_user_list', (users) => {
                 const usersListDiv = document.getElementById('online-users-list');
                 usersListDiv.innerHTML = '';
-                let currentUser = getCurrentUser();
-                
-                let validUsers = users.filter(user => user && user !== 'GUEST' && user !== 'undefined');
-                
-                validUsers.forEach(user => {
-                    if (user !== currentUser) {
-                        usersListDiv.innerHTML += `<div class="user-item" onclick="startPrivateChat('${user}')" title="Kliknij, aby pisać prywatnie">@ ${user}</div>`;
-                    }
+                users.filter(u => u && u !== 'GUEST').forEach(u => {
+                    if (u !== getCurrentUser()) usersListDiv.innerHTML += `<div class="user-item" onclick="startPrivateChat('${u}')">@ ${u}</div>`;
                 });
             });
-
-            socket.on('status', function(data) {
-                const messagesDiv = document.getElementById('chat-messages');
-                messagesDiv.innerHTML += `<div style="color: #888; font-style: italic; margin-bottom: 4px;">* ${data.msg}</div>`;
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            });
-
-            socket.on('new_message', function(msgData) {
-                const messagesDiv = document.getElementById('chat-messages');
-                let displaySender = msgData.user;
-                let msgStyle = '';
-                if (msgData.private) {
-                    displaySender = `[PW od ${msgData.user}]`;
-                    msgStyle = 'color: #ffcc00;';
-                } else if (msgData.room && msgData.room !== 'global') {
-                    displaySender = `[${msgData.room}] ${msgData.user}`;
-                }
-                messagesDiv.innerHTML += `<div style="margin-bottom: 4px; ${msgStyle}"><b>${displaySender}:</b> ${msgData.msg}</div>`;
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            socket.on('new_message', (data) => {
+                const msgs = document.getElementById('chat-messages');
+                msgs.innerHTML += `<div style="margin-bottom:4px;"><b>${data.user}:</b> ${data.msg}</div>`;
+                msgs.scrollTop = msgs.scrollHeight;
             });
         }
-
-        window.startPrivateChat = function(username) {
-            document.getElementById('chat-target').value = 'pw';
-            const recipientInput = document.getElementById('recipient-name');
-            recipientInput.style.display = 'block';
-            recipientInput.value = username;
-            document.getElementById('chat-title').textContent = `HALOGEN CHAT (PW: ${username})`;
-            document.getElementById('chat-input').focus();
-        };
 
         function getCurrentUser() {
-            let currentUser = localStorage.getItem('halogen_logged_user');
-            if (!currentUser || currentUser.trim() === '' || currentUser === 'null') {
-                return 'GUEST';
-            }
-            return currentUser;
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const loggedUser = getCurrentUser();
-            if (loggedUser !== 'GUEST') {
-                initChatSocket();
-            }
-            checkLoginStatus();
-            applyLanguage();
-
-            const chatInput = document.getElementById('chat-input');
-            if (chatInput) {
-                chatInput.addEventListener('keydown', function(event) {
-                    if (event.key === 'Enter') {
-                        event.preventDefault();
-                        sendChatMessage();
-                    }
-                });
-            }
-
-            document.getElementById('chat-target').addEventListener('change', function() {
-                const recipientInput = document.getElementById('recipient-name');
-                const chatTitle = document.getElementById('chat-title');
-                if (this.value === 'pw') {
-                    recipientInput.style.display = 'block';
-                    recipientInput.focus();
-                    chatTitle.textContent = 'HALOGEN CHAT (PW)';
-                } else {
-                    recipientInput.style.display = 'none';
-                    recipientInput.value = '';
-                    chatTitle.textContent = `${translations[currentLang].chatTitle} (${this.value.toUpperCase()})`;
-                    if (socket && getCurrentUser() !== 'GUEST') {
-                        socket.emit('join', { room: this.value, user: getCurrentUser() });
-                    }
-                }
-            });
-        });
-
-        function toggleChat(event) {
-            if (event) event.preventDefault();
-            let currentUser = getCurrentUser();
-            if (currentUser === 'GUEST') {
-                alert(translations[currentLang].guestBlockedChat);
-                openAuthModal('login');
-                return;
-            }
-
-            const chatBox = document.getElementById('halogen-chat-container');
-            if (chatBox.style.display === 'none' || chatBox.style.display === '') {
-                chatBox.style.display = 'flex';
-                setTimeout(() => {
-                    const input = document.getElementById('chat-input');
-                    if (input) input.focus();
-                }, 100);
-            } else {
-                chatBox.style.display = 'none';
-            }
-        }
-
-        function sendChatMessage() {
-            let currentUser = getCurrentUser();
-            if (currentUser === 'GUEST') {
-                alert(translations[currentLang].guestBlockedChat);
-                return;
-            }
-
-            const input = document.getElementById('chat-input');
-            const messageText = input.value.trim();
-            const targetSelect = document.getElementById('chat-target').value;
-            const recipientInput = document.getElementById('recipient-name');
-            
-            if (messageText !== '') {
-                if (!socket) initChatSocket();
-                let payload = { msg: messageText, user: currentUser };
-                if (targetSelect === 'pw') {
-                    const recipientName = recipientInput.value.trim();
-                    if (!recipientName) {
-                        alert(translations[currentLang].choosePwAlert);
-                        return;
-                    }
-                    payload.recipient = recipientName;
-                } else {
-                    payload.room = targetSelect;
-                    payload.recipient = null;
-                }
-                socket.emit('chat_msg', payload);
-                input.value = '';
-                input.focus();
-            }
-        }
-
-        function toggleLanguage() {
-            currentLang = (currentLang === 'PL') ? 'EN' : 'PL';
-            document.getElementById('lang-toggle-btn').textContent = `[ ${currentLang} ]`;
-            applyLanguage();
+            let u = localStorage.getItem('halogen_logged_user');
+            return (!u || u === 'undefined') ? 'GUEST' : u;
         }
 
         function checkLoginStatus() {
             const loggedUser = localStorage.getItem('halogen_logged_user');
-            const logoutBtn = document.getElementById('logout-btn');
-            const isLogged = loggedUser && loggedUser !== 'GUEST' && loggedUser !== '';
-            logoutBtn.style.display = isLogged ? 'inline-block' : 'none';
+            console.log("DEBUG: Aktualny użytkownik w localStorage to:", loggedUser);
+            const isLogged = loggedUser && loggedUser !== 'GUEST' && loggedUser !== 'undefined';
+            document.getElementById('logout-btn').style.display = isLogged ? 'inline-block' : 'none';
             updateAccountButton();
             updateChatButtonLabel();
         }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (getCurrentUser() !== 'GUEST') initChatSocket();
+            checkLoginStatus();
+            applyLanguage();
+        });
+
+        function toggleChat(e) {
+            if (getCurrentUser() === 'GUEST') { openAuthModal('login'); return; }
+            const c = document.getElementById('halogen-chat-container');
+            c.style.display = (c.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            if (input.value.trim() !== '') {
+                socket.emit('chat_msg', { msg: input.value.trim(), user: getCurrentUser(), room: document.getElementById('chat-target').value });
+                input.value = '';
+            }
+        }
+
+        function toggleLanguage() { currentLang = (currentLang === 'PL') ? 'EN' : 'PL'; applyLanguage(); }
     </script>
 </body>
 </html>
