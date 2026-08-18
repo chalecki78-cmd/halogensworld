@@ -60,7 +60,7 @@
         /* 1. UKŁAD DOMYŚLNY (DUŻE MONITORY / PC) */
         .monitor-screen { 
             position: absolute; 
-            top: 55%; 
+            top: 43%; 
             left: 62.5%; 
             width: 24.8%; 
             height: 15%; 
@@ -100,16 +100,16 @@
             object-fit: cover; 
         }
         
-        /* Okno czatu pozycjonowane w % WEWNĄTRZ .app-viewport - dokładnie tak samo jak .monitor-screen.
-           Ponieważ .app-viewport ma zawsze dokładnie 100vw x 100dvh, procenty poniżej są
-           matematycznie spójne na każdym urządzeniu, bez żadnych sztuczek z vh/dvh w tym miejscu. */
+        /* Okno czatu pozycjonowane w % WEWNĄTRZ .app-viewport (via body, te same wymiary) -
+           wyśrodkowane, 80% wysokości tła, ta sama logika % co .monitor-screen. */
         #halogen-chat-container {
             display: none; 
             position: absolute; 
-            bottom: 2%; 
-            right: 1.5%; 
-            width: 22%; 
-            height: 45%; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%; 
+            height: 80%; 
             background: #0a0a0a; 
             border: 2px solid #00ffcc; 
             z-index: 9999; 
@@ -118,12 +118,7 @@
 
         @media (max-width: 480px) {
             #halogen-chat-container {
-                width: 96%;
-                left: 2%;
-                right: 2%;
-                top: 2%;
-                bottom: 2%;
-                height: auto; /* wynika z top+bottom w % - zawsze dopasowane do .app-viewport, spójne jak kafelki */
+                width: 92%; /* szersze na telefonie, żeby wykorzystać wąski ekran */
             }
         }
 
