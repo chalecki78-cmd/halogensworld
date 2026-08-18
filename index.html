@@ -449,14 +449,26 @@
         }
 
         // --- AUTOMATYCZNE WYLOGOWANIE PRZY ZAMKNIĘCIU KARTY ---
-        window.addEventListener('beforeunload', function (e) {
+        function triggerLogoutBeacon() {
             const currentUser = getCurrentUser();
             if (currentUser && currentUser !== 'GUEST') {
-                // Wysyła natychmiastowy sygnał wylogowania w tle (nawet przy zamknięciu karty)
-                navigator.sendBeacon('/api/logout', JSON.stringify({ user: currentUser }));
+                const payload = JSON.stringify({ user: currentUser });
+                if (navigator.sendBeacon) {
+                    navigator.sendBeacon('/api/logout', payload);
+                } else {
+                    fetch('/api/logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payload,
+                        keepalive: true
+                    }).catch(() => {});
+                }
                 localStorage.removeItem('halogen_logged_user');
             }
-        });
+        }
+
+        window.addEventListener('beforeunload', triggerLogoutBeacon);
+        window.addEventListener('pagehide', triggerLogoutBeacon);
 
         function initChatSocket() {
             if (socket) return;
