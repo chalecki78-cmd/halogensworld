@@ -82,6 +82,17 @@
             cursor: pointer; 
             overflow: hidden;
         }
+
+        /* KLIN: górna krawędź przycięta po skosie, ciągła na obu kafelkach razem.
+           Soccer (lewy): lewy bok najniższy, prawy bok wyższy.
+           CarX (prawy): lewy bok = prawy bok soccera (ciągłość skosu), prawy bok najwyższy.
+           Wartości % można swobodnie dostroić, żeby zmienić kąt klina. */
+        .monitor-screen .monitor-frame:first-child {
+            clip-path: polygon(0% 22%, 100% 8%, 100% 100%, 0% 100%);
+        }
+        .monitor-screen .monitor-frame:last-child {
+            clip-path: polygon(0% 8%, 100% 0%, 100% 100%, 0% 100%);
+        }
         
         .monitor-frame img { 
             width: 100%; 
