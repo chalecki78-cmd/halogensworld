@@ -174,12 +174,16 @@
             <button id="t-understood-btn" onclick="closeModal()" style="background: #00ffcc; color: #000; border: none; padding: 8px 15px; font-weight: bold; cursor: pointer; font-family: 'Courier New'; width: 100%;">ZROZUMIAŁEM</button>
         </div>
 
-        <!-- Formularz Logowania / Wyboru -->
+        <!-- Formularz Logowania z Hasłem -->
         <div id="login-form" class="modal-content" style="display: none;">
-            <h2 style="margin-top: 0; font-size: 14px; border-bottom: 1px solid #00ffcc; padding-bottom: 5px;">PANEL UŻYTKOWNIKA</h2>
-            <div style="margin-bottom: 10px; font-size: 11px;">
-                <label style="display: block; margin-bottom: 3px;">Wprowadź swój zarejestrowany nick:</label>
+            <h2 style="margin-top: 0; font-size: 14px; border-bottom: 1px solid #00ffcc; padding-bottom: 5px;">PANEL LOGOWANIA</h2>
+            <div style="margin-bottom: 8px; font-size: 11px;">
+                <label style="display: block; margin-bottom: 2px;">Nick:</label>
                 <input type="text" id="auth-username-input" placeholder="Twój nick..." style="width: 100%; background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 6px; font-family: 'Courier New'; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 10px; font-size: 11px;">
+                <label style="display: block; margin-bottom: 2px;">Hasło:</label>
+                <input type="password" id="auth-password-input" placeholder="Twoje hasło..." style="width: 100%; background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 6px; font-family: 'Courier New'; box-sizing: border-box;">
             </div>
             <div id="auth-error-msg" style="color: #ff4444; font-size: 10px; margin-bottom: 10px; min-height: 12px;"></div>
             <div style="display: flex; gap: 5px; flex-direction: column;">
@@ -189,12 +193,16 @@
             </div>
         </div>
 
-        <!-- Formularz Rejestracji -->
+        <!-- Formularz Rejestracji z Hasłem -->
         <div id="register-form" class="modal-content" style="display: none;">
             <h2 style="margin-top: 0; font-size: 14px; border-bottom: 1px solid #00ffcc; padding-bottom: 5px;">NOWA REJESTRACJA</h2>
+            <div style="margin-bottom: 8px; font-size: 11px;">
+                <label style="display: block; margin-bottom: 2px;">Wybierz unikalny nick:</label>
+                <input type="text" id="register-username-input" placeholder="Nowy nick..." style="width: 100%; background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 6px; font-family: 'Courier New'; box-sizing: border-box;">
+            </div>
             <div style="margin-bottom: 10px; font-size: 11px;">
-                <label style="display: block; margin-bottom: 3px;">Wybierz swój unikalny nick:</label>
-                <input type="text" id="register-username-input" placeholder="Wpisz nowy nick..." style="width: 100%; background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 6px; font-family: 'Courier New'; box-sizing: border-box;">
+                <label style="display: block; margin-bottom: 2px;">Wprowadź hasło:</label>
+                <input type="password" id="register-password-input" placeholder="Hasło..." style="width: 100%; background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 6px; font-family: 'Courier New'; box-sizing: border-box;">
             </div>
             <div id="reg-error-msg" style="color: #ff4444; font-size: 10px; margin-bottom: 10px; min-height: 12px;"></div>
             <div style="display: flex; gap: 5px; flex-direction: column;">
@@ -284,30 +292,33 @@
             }
         }
         
-        // ZARZĄDZANIE BAZĄ UŻYTKOWNIKÓW W LOCALSTORAGE
+        // ZARZĄDZANIE BAZĄ UŻYTKOWNIKÓW Z HASŁAMI W LOCALSTORAGE
         function getRegisteredUsers() {
-            let users = localStorage.getItem('halogen_registered_users');
-            if (!users) return [];
+            let users = localStorage.getItem('halogen_registered_users_db');
+            if (!users) return {};
             try {
                 return JSON.parse(users);
             } catch(e) {
-                return [];
+                return {};
             }
         }
 
-        function isUserRegistered(username) {
-            let users = getRegisteredUsers();
-            return users.includes(username.trim());
-        }
-
-        function registerNewUserInDB(username) {
+        function registerNewUserInDB(username, password) {
             let users = getRegisteredUsers();
             let cleanName = username.trim();
-            if (!cleanName) return false;
-            if (users.includes(cleanName)) return false; // Już istnieje
-            users.push(cleanName);
-            localStorage.setItem('halogen_registered_users', JSON.stringify(users));
+            if (!cleanName || !password) return false;
+            if (users[cleanName]) return false; // Istnieje już
+            
+            users[cleanName] = password;
+            localStorage.setItem('halogen_registered_users_db', JSON.stringify(users));
             return true;
+        }
+
+        function verifyUserCredentials(username, password) {
+            let users = getRegisteredUsers();
+            let cleanName = username.trim();
+            if (!users[cleanName]) return false; // Brak użytkownika
+            return users[cleanName] === password; // Sprawdzenie hasła
         }
 
         // OBSŁUGA OKIEN MODALNYCH
@@ -334,6 +345,7 @@
                 loginForm.style.display = 'block';
                 document.getElementById('auth-error-msg').textContent = '';
                 document.getElementById('auth-username-input').value = '';
+                document.getElementById('auth-password-input').value = '';
                 setTimeout(() => document.getElementById('auth-username-input').focus(), 100);
             }
         }
@@ -343,6 +355,7 @@
             document.getElementById('register-form').style.display = 'block';
             document.getElementById('reg-error-msg').textContent = '';
             document.getElementById('register-username-input').value = '';
+            document.getElementById('register-password-input').value = '';
             setTimeout(() => document.getElementById('register-username-input').focus(), 100);
         }
 
@@ -361,13 +374,18 @@
             if (event.target.id === 'auth-modal') closeModal();
         }
 
-        // AKCJE LOGOWANIA I REJESTRACJI
+        // AKCJE LOGOWANIA I REJESTRACJI Z HASŁEM
         function performRegister() {
             const inputVal = document.getElementById('register-username-input').value.trim();
+            const passVal = document.getElementById('register-password-input').value;
             const errDiv = document.getElementById('reg-error-msg');
             
             if (!inputVal) {
                 errDiv.textContent = 'Nazwa użytkownika nie może być pusta!';
+                return;
+            }
+            if (!passVal) {
+                errDiv.textContent = 'Hasło nie może być puste!';
                 return;
             }
             if (inputVal.toUpperCase() === 'GUEST') {
@@ -375,12 +393,13 @@
                 return;
             }
 
-            if (isUserRegistered(inputVal)) {
+            let users = getRegisteredUsers();
+            if (users[inputVal]) {
                 errDiv.textContent = 'Ten nick jest już zarejestrowany! Wybierz inny.';
                 return;
             }
 
-            if (registerNewUserInDB(inputVal)) {
+            if (registerNewUserInDB(inputVal, passVal)) {
                 alert(`Konto "${inputVal}" zostało pomyślnie zarejestrowane! Teraz możesz się zalogować.`);
                 switchLoginView();
                 document.getElementById('auth-username-input').value = inputVal;
@@ -391,6 +410,7 @@
 
         function performLogin() {
             const inputVal = document.getElementById('auth-username-input').value.trim();
+            const passVal = document.getElementById('auth-password-input').value;
             const errDiv = document.getElementById('auth-error-msg');
 
             if (!inputVal) {
@@ -406,9 +426,14 @@
                 return;
             }
 
-            // Weryfikacja w bazie zarejestrowanych kont
-            if (!isUserRegistered(inputVal)) {
-                errDiv.textContent = 'Błąd: Ten nick nie jest zarejestrowany! Najpierw się zarejestruj.';
+            if (!passVal) {
+                errDiv.textContent = 'Wpisz hasło!';
+                return;
+            }
+
+            // Weryfikacja nicku i hasła w bazie
+            if (!verifyUserCredentials(inputVal, passVal)) {
+                errDiv.textContent = 'Błąd: Nieprawidłowy nick lub hasło!';
                 return;
             }
 
