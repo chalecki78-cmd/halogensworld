@@ -6,10 +6,18 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, join_room, leave_room, emit
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+
+# Konfiguracja CORS uwzględniająca ciasteczka i Twoje domeny
+CORS(app, supports_credentials=True, origins=["https://halogensworld.pl", "https://halogensworld.onrender.com", "http://localhost:5000"])
 app.secret_key = 'halogen_secure_secret_key'
 
-socketio = SocketIO(app, cors_allowed_origins="*")
+# Wymuszenie bezpiecznych ciasteczek sesji w środowisku produkcyjnym (HTTPS na Renderze)
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SAMESITE='None',
+)
+
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 USERS_FILE = os.path.join(BASE_DIR, 'users.json')
