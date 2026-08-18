@@ -304,34 +304,6 @@
             }
         }
         
-        function getRegisteredUsers() {
-            let users = localStorage.getItem('halogen_registered_users_db');
-            if (!users) return {};
-            try {
-                return JSON.parse(users);
-            } catch(e) {
-                return {};
-            }
-        }
-
-        function registerNewUserInDB(username, password) {
-            let users = getRegisteredUsers();
-            let cleanName = username.trim();
-            if (!cleanName || !password) return false;
-            if (users[cleanName]) return false;
-            
-            users[cleanName] = password;
-            localStorage.setItem('halogen_registered_users_db', JSON.stringify(users));
-            return true;
-        }
-
-        function verifyUserCredentials(username, password) {
-            let users = getRegisteredUsers();
-            let cleanName = username.trim();
-            if (!users[cleanName]) return false;
-            return users[cleanName] === password;
-        }
-
         function openAuthModal(type) {
             const modal = document.getElementById('auth-modal');
             const helpForm = document.getElementById('help-form');
@@ -384,40 +356,40 @@
             if (event.target.id === 'auth-modal') closeModal();
         }
 
-        function performRegister() {
+        // --- KOMUNIKACJA Z SERVER.PY (API) ---
+        async function performRegister() {
             const inputVal = document.getElementById('register-username-input').value.trim();
             const passVal = document.getElementById('register-password-input').value;
             const errDiv = document.getElementById('reg-error-msg');
             
-            if (!inputVal) {
-                errDiv.textContent = 'Nazwa użytkownika nie może być pusta!';
-                return;
-            }
-            if (!passVal) {
-                errDiv.textContent = 'Hasło nie może być puste!';
-                return;
-            }
-            if (inputVal.toUpperCase() === 'GUEST') {
-                errDiv.textContent = 'Nie można zarejestrować nicku GUEST!';
+            if (!inputVal || !passVal) {
+                errDiv.textContent = 'Wypełnij wszystkie pola!';
                 return;
             }
 
-            let users = getRegisteredUsers();
-            if (users[inputVal]) {
-                errDiv.textContent = 'Ten nick jest już zarejestrowany! Wybierz inny.';
-                return;
-            }
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: inputVal, pass: passVal })
+                });
+                const data = await response.json();
 
-            if (registerNewUserInDB(inputVal, passVal)) {
-                alert(`Konto "${inputVal}" zostało pomyślnie zarejestrowane! Teraz możesz się zalogować.`);
-                switchLoginView();
-                document.getElementById('auth-username-input').value = inputVal;
-            } else {
-                errDiv.textContent = 'Błąd podczas rejestracji.';
+                if (response.ok && data.status === 'success') {
+                    alert(`Konto "${inputVal}" zostało pomyślnie zarejestrowane! Teraz możesz się zalogować.`);
+                    switchLoginView();
+                    document.getElementById('auth-username-input').value = inputVal;
+                } else if (data.message === 'exists') {
+                    errDiv.textContent = 'Ten nick jest już zarejestrowany! Wybierz inny.';
+                } else {
+                    errDiv.textContent = data.message || 'Błąd rejestracji.';
+                }
+            } catch(e) {
+                errDiv.textContent = 'Błąd połączenia z serwerem.';
             }
         }
 
-        function performLogin() {
+        async function performLogin() {
             const inputVal = document.getElementById('auth-username-input').value.trim();
             const passVal = document.getElementById('auth-password-input').value;
             const errDiv = document.getElementById('auth-error-msg');
@@ -440,14 +412,40 @@
                 return;
             }
 
-            if (!verifyUserCredentials(inputVal, passVal)) {
-                errDiv.textContent = 'Błąd: Nieprawidłowy nick lub hasło!';
-                return;
-            }
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: inputVal, pass: passVal })
+                });
+                const data = await response.json();
 
-            localStorage.setItem('halogen_logged_user', inputVal);
-            closeModal();
+                if (response.ok && data.status === 'success') {
+                    localStorage.setItem('halogen_logged_user', data.user);
+                    closeModal();
+                    checkLoginStatus();
+                    window.location.reload();
+                } else {
+                    errDiv.textContent = data.message || 'Błędny nick lub hasło!';
+                }
+            } catch(e) {
+                errDiv.textContent = 'Błąd połączenia z serwerem.';
+            }
+        }
+
+        async function handleLogout() {
+            const currentUser = getCurrentUser();
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: currentUser })
+                });
+            } catch(e) {}
+
+            localStorage.removeItem('halogen_logged_user');
             checkLoginStatus();
+            document.getElementById('halogen-chat-container').style.display = 'none';
             window.location.reload();
         }
 
@@ -622,13 +620,6 @@
             logoutBtn.style.display = isLogged ? 'inline-block' : 'none';
             updateAccountButton();
             updateChatButtonLabel();
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('halogen_logged_user');
-            checkLoginStatus();
-            document.getElementById('halogen-chat-container').style.display = 'none';
-            window.location.reload();
         }
     </script>
 </body>
