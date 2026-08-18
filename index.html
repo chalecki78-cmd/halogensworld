@@ -130,7 +130,7 @@
 </head>
 <body>
 
-    <div class="rotate-hint">OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ</div>
+    <div class="rotate-hint" id="t-rotate-hint">OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ</div>
 
     <div class="app-viewport">
         <a href="#" class="top-left-chat-label" id="t-chat" onclick="toggleChat(event)">CZAT</a>
@@ -153,7 +153,7 @@
         <div id="help-form" class="modal-content" style="display: none;">
             <h2 id="t-help-title">WSPARCIE SYSTEMOWE</h2>
             <p id="t-help-desc">Kontakt: Chalecki78@gmail.com</p>
-            <button onclick="closeModal()">ZROZUMIAŁEM</button>
+            <button id="t-understood-btn" onclick="closeModal()">ZROZUMIAŁEM</button>
         </div>
     </div>
 
@@ -165,16 +165,16 @@
         
         <div style="padding: 5px; background: #050b0b; border-bottom: 1px solid #00ffcc; display: flex; gap: 5px; align-items: center; flex-shrink: 0;">
             <select id="chat-target" style="flex: 1; background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 4px; font-family: 'Courier New'; font-size: 11px;">
-                <option value="global">Pokój: Globalny</option>
-                <option value="techniczny">Pokój: Techniczny</option>
-                <option value="pw">Prywatna wiadomość (Szept)</option>
+                <option id="t-opt-global" value="global">Pokój: Globalny</option>
+                <option id="t-opt-tech" value="techniczny">Pokój: Techniczny</option>
+                <option id="t-opt-pw" value="pw">Prywatna wiadomość (Szept)</option>
             </select>
             <input type="text" id="recipient-name" placeholder="Nick odbiorcy" style="width: 90px; display: none; background: #000; color: #fff; border: 1px solid #00ffcc; padding: 4px; font-size: 11px;" readonly>
         </div>
 
         <div class="chat-layout">
             <div class="users-sidebar">
-                <div style="font-weight: bold; border-bottom: 1px dashed #00ffcc; margin-bottom: 4px; padding-bottom: 2px; color: #00ffcc;">ONLINE:</div>
+                <div id="t-online-label" style="font-weight: bold; border-bottom: 1px dashed #00ffcc; margin-bottom: 4px; padding-bottom: 2px; color: #00ffcc;">ONLINE:</div>
                 <div id="online-users-list"></div>
             </div>
             <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 10px; color: #00ffcc; font-size: 12px; word-break: break-all; background: #050b0b;"></div>
@@ -190,6 +190,85 @@
     <script>
         let socket = null;
         let currentLang = 'PL';
+
+        /* ===== SŁOWNIK TŁUMACZEŃ ===== */
+        const translations = {
+            PL: {
+                rotateHint: "OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ",
+                chatLabel: "CZAT",
+                status: "STATUS:",
+                account: "KONTO",
+                guest: "GUEST",
+                help: "[ POMOC ]",
+                logout: "[ WYLOGUJ ]",
+                helpTitle: "WSPARCIE SYSTEMOWE",
+                helpDesc: "Kontakt: Chalecki78@gmail.com",
+                understood: "ZROZUMIAŁEM",
+                chatTitle: "HALOGEN CHAT",
+                roomGlobal: "Pokój: Globalny",
+                roomTech: "Pokój: Techniczny",
+                roomPW: "Prywatna wiadomość (Szept)",
+                recipientPlaceholder: "Nick odbiorcy",
+                onlineLabel: "ONLINE:",
+                chatInputPlaceholder: "Wpisz wiadomość...",
+                choosePwAlert: "Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!"
+            },
+            EN: {
+                rotateHint: "ROTATE YOUR DEVICE TO CONTINUE",
+                chatLabel: "CHAT",
+                status: "STATUS:",
+                account: "ACCOUNT",
+                guest: "GUEST",
+                help: "[ HELP ]",
+                logout: "[ LOGOUT ]",
+                helpTitle: "SYSTEM SUPPORT",
+                helpDesc: "Contact: Chalecki78@gmail.com",
+                understood: "UNDERSTOOD",
+                chatTitle: "HALOGEN CHAT",
+                roomGlobal: "Room: Global",
+                roomTech: "Room: Technical",
+                roomPW: "Private message (Whisper)",
+                recipientPlaceholder: "Recipient nick",
+                onlineLabel: "ONLINE:",
+                chatInputPlaceholder: "Type a message...",
+                choosePwAlert: "Select a user from the list on the left to send a private message!"
+            }
+        };
+
+        /* Podmienia teksty na całej stronie zgodnie z currentLang. Wywoływana przy starcie i przy każdym toggleLanguage(). */
+        function applyLanguage() {
+            const t = translations[currentLang];
+
+            document.getElementById('t-rotate-hint').textContent = t.rotateHint;
+            document.getElementById('t-chat').textContent = t.chatLabel;
+            document.getElementById('t-status').textContent = t.status;
+            document.getElementById('t-help').textContent = t.help;
+            document.getElementById('logout-btn').textContent = t.logout;
+            document.getElementById('t-help-title').textContent = t.helpTitle;
+            document.getElementById('t-help-desc').textContent = t.helpDesc;
+            document.getElementById('t-understood-btn').textContent = t.understood;
+            document.getElementById('t-opt-global').textContent = t.roomGlobal;
+            document.getElementById('t-opt-tech').textContent = t.roomTech;
+            document.getElementById('t-opt-pw').textContent = t.roomPW;
+            document.getElementById('recipient-name').placeholder = t.recipientPlaceholder;
+            document.getElementById('t-online-label').textContent = t.onlineLabel;
+            document.getElementById('chat-input').placeholder = t.chatInputPlaceholder;
+
+            // przycisk KONTO / ACCOUNT zależy jeszcze od stanu logowania - osobna funkcja
+            updateAccountButton();
+        }
+
+        /* Ustawia tekst przycisku konta, uwzględniając zarówno język, jak i to czy user jest zalogowany */
+        function updateAccountButton() {
+            const t = translations[currentLang];
+            const loggedUser = localStorage.getItem('halogen_logged_user');
+            const loginBtn = document.getElementById('login-trigger-btn');
+            if (loggedUser) {
+                loginBtn.textContent = `[ ${t.account}: ${loggedUser} ]`;
+            } else {
+                loginBtn.textContent = `[ ${t.account}: ${t.guest} ]`;
+            }
+        }
         
         function initChatSocket() {
             if (socket) return;
@@ -250,12 +329,6 @@
         function getCurrentUser() {
             let currentUser = localStorage.getItem('halogen_logged_user');
             if (!currentUser || currentUser === '') {
-                const loginBtnText = document.getElementById('login-trigger-btn').textContent;
-                if (loginBtnText.includes('KONTO:')) {
-                    currentUser = loginBtnText.replace('[ KONTO:', '').replace(']', '').trim();
-                }
-            }
-            if (!currentUser || currentUser.includes('GUEST')) {
                 return 'GUEST';
             }
             return currentUser;
@@ -264,6 +337,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             initChatSocket();
             checkLoginStatus();
+            applyLanguage();
 
             const chatInput = document.getElementById('chat-input');
             if (chatInput) {
@@ -285,7 +359,7 @@
                 } else {
                     recipientInput.style.display = 'none';
                     recipientInput.value = '';
-                    chatTitle.textContent = `HALOGEN CHAT (${this.value.toUpperCase()})`;
+                    chatTitle.textContent = `${translations[currentLang].chatTitle} (${this.value.toUpperCase()})`;
                     if (socket) {
                         socket.emit('join', { room: this.value, user: getCurrentUser() });
                     }
@@ -319,7 +393,7 @@
                 if (targetSelect === 'pw') {
                     const recipientName = recipientInput.value.trim();
                     if (!recipientName) {
-                        alert('Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!');
+                        alert(translations[currentLang].choosePwAlert);
                         return;
                     }
                     payload.recipient = recipientName;
@@ -336,6 +410,7 @@
         function toggleLanguage() {
             currentLang = (currentLang === 'PL') ? 'EN' : 'PL';
             document.getElementById('lang-toggle-btn').textContent = `[ ${currentLang} ]`;
+            applyLanguage();
         }
 
         function openModal(type) {
@@ -354,15 +429,9 @@
 
         function checkLoginStatus() {
             const loggedUser = localStorage.getItem('halogen_logged_user');
-            const loginBtn = document.getElementById('login-trigger-btn');
             const logoutBtn = document.getElementById('logout-btn');
-            if (loggedUser) {
-                loginBtn.textContent = `[ KONTO: ${loggedUser} ]`;
-                logoutBtn.style.display = 'inline-block';
-            } else {
-                loginBtn.textContent = '[ KONTO: GUEST ]';
-                logoutBtn.style.display = 'none';
-            }
+            logoutBtn.style.display = loggedUser ? 'inline-block' : 'none';
+            updateAccountButton();
         }
 
         function handleLogout() {
