@@ -370,7 +370,6 @@
             if (event) event.preventDefault();
             const loggedUser = localStorage.getItem('halogen_logged_user');
             
-            // Sprawdzenie logowania - jeśli gość, przekieruj / ostrzeż
             if (!loggedUser || loggedUser === 'GUEST' || loggedUser.trim() === '') {
                 alert(translations[currentLang].guestChatAlert);
                 window.location.href = 'login.html';
@@ -437,16 +436,23 @@
         }
 
         function checkLoginStatus() {
-            const loggedUser = localStorage.getItem('halogen_logged_user');
+            let loggedUser = localStorage.getItem('halogen_logged_user');
+            
+            // Wymuszenie statusu GUEST, jeśli w pamięci nie ma żadnego użytkownika
+            if (!loggedUser || loggedUser.trim() === '') {
+                loggedUser = 'GUEST';
+                localStorage.setItem('halogen_logged_user', 'GUEST');
+            }
+
             const logoutBtn = document.getElementById('logout-btn');
-            const isLogged = loggedUser && loggedUser !== 'GUEST' && loggedUser.trim() !== '';
+            const isLogged = (loggedUser !== 'GUEST');
             logoutBtn.style.display = isLogged ? 'inline-block' : 'none';
             updateAccountButton();
             updateChatButtonLabel();
         }
 
         function handleLogout() {
-            localStorage.removeItem('halogen_logged_user');
+            localStorage.setItem('halogen_logged_user', 'GUEST');
             checkLoginStatus();
             window.location.reload();
         }
