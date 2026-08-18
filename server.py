@@ -81,7 +81,6 @@ def api_logout():
             active.remove(username)
             save_json(SESSIONS_FILE, active)
         
-        # Usuwamy z aktywnych połączeń socketowych
         for sid, uname in list(connected_users.items()):
             if uname == username:
                 del connected_users[sid]
@@ -103,16 +102,19 @@ def api_register():
     save_json(USERS_FILE, users)
     return jsonify({'status': 'success'})
 
-# Przechowujemy powiązanie: sid -> username (tylko zweryfikowani użytkownicy)
 connected_users = {}
 
 def broadcast_user_list():
-    # Pobieramy wyłącznie unikalne nazwy użytkowników, odrzucając puste, GUEST i undefined
-    users_list = list(set(
-        uname for uname in connected_users.values() 
-        if uname and uname != 'GUEST' and uname != 'undefined' and uname.strip() != ''
-    ))
+    clean_users = set()
+    for sid, uname in connected_users.items():
+        if uname and isinstance(uname, str):
+            uname_clean = uname.strip()
+            if uname_clean and uname_clean != 'GUEST' and uname_clean != 'undefined':
+                clean_users.add(uname_clean)
+                
+    users_list = list(clean_users)
     socketio.emit('update_user_list', users_list)
+    print("Aktualna czysta lista online:", users_list)
 
 @socketio.on('connect')
 def handle_connect():
@@ -129,7 +131,6 @@ def handle_disconnect():
 def handle_register_socket(data):
     user = data.get('user') or session.get('user', 'GUEST')
     
-    # Ignorujemy rejestrację GUEST-ów i fałszywych nazw na liście użytkowników online
     if not user or user == 'GUEST' or user == 'undefined' or user.strip() == '':
         print(f"Ignorowano rejestrację socketa dla niezalogowanego: {request.sid}")
         return
@@ -157,7 +158,6 @@ def handle_chat_msg(data):
         return
 
     if recipient and recipient != 'global':
-        # Znajdź target_sid po nazwie użytkownika w connected_users
         target_sid = None
         for sid, uname in connected_users.items():
             if uname == recipient:
@@ -167,7 +167,7 @@ def handle_chat_msg(data):
         private_payload = {'user': user, 'msg': msg, 'private': True, 'recipient': recipient}
         if target_sid:
             socketio.emit('new_message', private_payload, room=target_sid)
-        emit('new_message', private_payload) # Wyślij też do nadawcy
+        emit('new_message', private_payload)
     else:
         emit('new_message', {'user': user, 'msg': msg, 'room': room}, room=room)
 
