@@ -7,8 +7,8 @@
     <style>
         body { 
             margin: 0; padding: 0; width: 100vw; 
-            height: 100vh; /* fallback dla starszych przeglądarek */
-            height: 100dvh; /* poprawna wysokość na mobile (uwzględnia chowający się pasek adresu) */
+            height: 100vh; 
+            height: 100dvh; 
             background: #000;
             font-family: 'Courier New', Courier, monospace; color: #00ffcc; 
             overflow: hidden;
@@ -16,18 +16,13 @@
             position: fixed;
         }
 
-        /* WSPÓLNA WARSTWA TŁA I KAFELKÓW - tło zawsze rozciągnięte na 100% szerokości i 100%
-           wysokości ekranu (celowo zdeformowane, bez zachowania proporcji). Dzięki temu, że
-           .app-viewport ZAWSZE ma dokładnie wymiary 100vw x 100dvh, pozycje % kafelków
-           (.monitor-screen) są matematycznie IDENTYCZNE na każdej rozdzielczości - nie
-           potrzeba żadnych media queries dla pozycji. */
         .app-viewport {
             position: absolute;
             top: 0;
             left: 0;
             width: 100vw;
-            height: 100vh; /* fallback */
-            height: 100dvh; /* poprawna wysokość na mobile - kluczowe dla spójności % */
+            height: 100vh; 
+            height: 100dvh; 
             background-image: url('IMG/strona_startowa_tlo.png');
             background-repeat: no-repeat;
             background-position: center center;
@@ -46,7 +41,7 @@
             }
         }
         
-        .top-left-chat-label { position: absolute; top: 25px; left: 35px; border: 1px solid #00ffcc; color: #00ffcc; padding: 3px 8px; font-size: 9px; font-weight: bold; border-radius: 2px; z-index: 100; cursor: pointer; background: rgba(0, 10, 10, 0.85); text-decoration: none; }
+        .top-left-chat-label { position: absolute; top: 25px; left: 35px; border: 1px solid #00ffcc; color: #00ffcc; padding: 3px 8px; font-size: 9px; font-weight: bold; border-radius: 2px; z-index: 100; cursor: pointer; background: rgba(0, 10, 10, 0.85); text-decoration: none; display: flex; align-items: center; gap: 4px; }
         .top-left-chat-label:hover { background: #00ffcc; color: #000; }
         
         .system-auth-bar { position: absolute; top: 25px; right: 35px; display: flex; align-items: center; gap: 10px; font-size: 10px; color: #00ffcc; z-index: 100; background: rgba(0, 10, 10, 0.85); padding: 6px 12px; border: 1px solid rgba(0, 255, 204, 0.4); border-radius: 4px; }
@@ -57,7 +52,6 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #050b0b; border: 2px solid #00ffcc; padding: 25px; width: 320px; border-radius: 6px; }
         
-        /* 1. UKŁAD DOMYŚLNY (DUŻE MONITORY / PC) */
         .monitor-screen { 
             position: absolute; 
             top: 43%; 
@@ -71,10 +65,6 @@
             justify-content: center;
         }
 
-        /* Media queries dla .monitor-screen NIE SĄ już potrzebne - .app-viewport ma zawsze
-           dokładnie 100vw x 100dvh, więc pozycje % są matematycznie identyczne na każdym
-           urządzeniu i rozdzielczości. */
-
         .monitor-frame { 
             flex: 1; 
             border: 1px solid rgba(0, 255, 204, 0.5); 
@@ -83,10 +73,6 @@
             overflow: hidden;
         }
 
-        /* KLIN: górna krawędź przycięta po skosie, ciągła na obu kafelkach razem.
-           Soccer (lewy): lewy bok najniższy, prawy bok wyższy.
-           CarX (prawy): lewy bok = prawy bok soccera (ciągłość skosu), prawy bok najwyższy.
-           Wartości % można swobodnie dostroić, żeby zmienić kąt klina. */
         .monitor-screen .monitor-frame:first-child {
             clip-path: polygon(0% 22%, 100% 8%, 100% 100%, 0% 100%);
         }
@@ -100,8 +86,6 @@
             object-fit: cover; 
         }
         
-        /* Okno czatu pozycjonowane w % WEWNĄTRZ .app-viewport (via body, te same wymiary) -
-           wyśrodkowane, 80% wysokości tła, ta sama logika % co .monitor-screen. */
         #halogen-chat-container {
             display: none; 
             position: absolute; 
@@ -118,7 +102,7 @@
 
         @media (max-width: 480px) {
             #halogen-chat-container {
-                width: 92%; /* szersze na telefonie, żeby wykorzystać wąski ekran */
+                width: 92%; 
             }
         }
 
@@ -191,11 +175,11 @@
         let socket = null;
         let currentLang = 'PL';
 
-        /* ===== SŁOWNIK TŁUMACZEŃ ===== */
         const translations = {
             PL: {
                 rotateHint: "OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ",
                 chatLabel: "CZAT",
+                chatLockedLabel: "🔒 CZAT (WYMAGANE LOGOWANIE)",
                 status: "STATUS:",
                 account: "KONTO",
                 guest: "GUEST",
@@ -211,11 +195,13 @@
                 recipientPlaceholder: "Nick odbiorcy",
                 onlineLabel: "ONLINE:",
                 chatInputPlaceholder: "Wpisz wiadomość...",
-                choosePwAlert: "Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!"
+                choosePwAlert: "Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!",
+                guestChatAlert: "Dostęp do czatu wymaga zalogowania na konto! Przejdź do logowania."
             },
             EN: {
                 rotateHint: "ROTATE YOUR DEVICE TO CONTINUE",
                 chatLabel: "CHAT",
+                chatLockedLabel: "🔒 CHAT (LOGIN REQUIRED)",
                 status: "STATUS:",
                 account: "ACCOUNT",
                 guest: "GUEST",
@@ -231,16 +217,16 @@
                 recipientPlaceholder: "Recipient nick",
                 onlineLabel: "ONLINE:",
                 chatInputPlaceholder: "Type a message...",
-                choosePwAlert: "Select a user from the list on the left to send a private message!"
+                choosePwAlert: "Select a user from the list on the left to send a private message!",
+                guestChatAlert: "Chat access requires logging into an account! Please go to login."
             }
         };
 
-        /* Podmienia teksty na całej stronie zgodnie z currentLang. Wywoływana przy starcie i przy każdym toggleLanguage(). */
         function applyLanguage() {
             const t = translations[currentLang];
 
             document.getElementById('t-rotate-hint').textContent = t.rotateHint;
-            document.getElementById('t-chat').textContent = t.chatLabel;
+            updateChatButtonLabel();
             document.getElementById('t-status').textContent = t.status;
             document.getElementById('t-help').textContent = t.help;
             document.getElementById('logout-btn').textContent = t.logout;
@@ -254,16 +240,25 @@
             document.getElementById('t-online-label').textContent = t.onlineLabel;
             document.getElementById('chat-input').placeholder = t.chatInputPlaceholder;
 
-            // przycisk KONTO / ACCOUNT zależy jeszcze od stanu logowania - osobna funkcja
             updateAccountButton();
         }
 
-        /* Ustawia tekst przycisku konta, uwzględniając zarówno język, jak i to czy user jest zalogowany */
+        function updateChatButtonLabel() {
+            const t = translations[currentLang];
+            const loggedUser = localStorage.getItem('halogen_logged_user');
+            const chatBtn = document.getElementById('t-chat');
+            if (loggedUser && loggedUser !== 'GUEST' && loggedUser.trim() !== '') {
+                chatBtn.textContent = t.chatLabel;
+            } else {
+                chatBtn.textContent = t.chatLockedLabel;
+            }
+        }
+
         function updateAccountButton() {
             const t = translations[currentLang];
             const loggedUser = localStorage.getItem('halogen_logged_user');
             const loginBtn = document.getElementById('login-trigger-btn');
-            if (loggedUser) {
+            if (loggedUser && loggedUser !== 'GUEST' && loggedUser.trim() !== '') {
                 loginBtn.textContent = `[ ${t.account}: ${loggedUser} ]`;
             } else {
                 loginBtn.textContent = `[ ${t.account}: ${t.guest} ]`;
@@ -328,16 +323,20 @@
 
         function getCurrentUser() {
             let currentUser = localStorage.getItem('halogen_logged_user');
-            if (!currentUser || currentUser === '') {
+            if (!currentUser || currentUser === '' || currentUser === 'GUEST') {
                 return 'GUEST';
             }
             return currentUser;
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            initChatSocket();
             checkLoginStatus();
             applyLanguage();
+
+            const loggedUser = localStorage.getItem('halogen_logged_user');
+            if (loggedUser && loggedUser !== 'GUEST' && loggedUser.trim() !== '') {
+                initChatSocket();
+            }
 
             const chatInput = document.getElementById('chat-input');
             if (chatInput) {
@@ -369,9 +368,19 @@
 
         function toggleChat(event) {
             if (event) event.preventDefault();
+            const loggedUser = localStorage.getItem('halogen_logged_user');
+            
+            // Sprawdzenie logowania - jeśli gość, przekieruj / ostrzeż
+            if (!loggedUser || loggedUser === 'GUEST' || loggedUser.trim() === '') {
+                alert(translations[currentLang].guestChatAlert);
+                window.location.href = 'login.html';
+                return;
+            }
+
             const chatBox = document.getElementById('halogen-chat-container');
             if (chatBox.style.display === 'none' || chatBox.style.display === '') {
                 chatBox.style.display = 'flex';
+                if (!socket) initChatSocket();
                 setTimeout(() => {
                     const input = document.getElementById('chat-input');
                     if (input) input.focus();
@@ -430,8 +439,10 @@
         function checkLoginStatus() {
             const loggedUser = localStorage.getItem('halogen_logged_user');
             const logoutBtn = document.getElementById('logout-btn');
-            logoutBtn.style.display = loggedUser ? 'inline-block' : 'none';
+            const isLogged = loggedUser && loggedUser !== 'GUEST' && loggedUser.trim() !== '';
+            logoutBtn.style.display = isLogged ? 'inline-block' : 'none';
             updateAccountButton();
+            updateChatButtonLabel();
         }
 
         function handleLogout() {
