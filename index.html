@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logowanie - Halogen Hub</title>
+    <title>Autoryzacja - Halogen Hub</title>
     <style>
         body {
             margin: 0;
@@ -89,6 +89,20 @@
             box-shadow: 0 0 10px #fff;
         }
 
+        .mode-switch {
+            margin-top: 15px;
+            font-size: 10px;
+            cursor: pointer;
+            color: #00ffcc;
+            background: none;
+            border: none;
+            text-decoration: underline;
+        }
+
+        .mode-switch:hover {
+            color: #fff;
+        }
+
         .back-link {
             display: block;
             margin-top: 15px;
@@ -111,7 +125,7 @@
 <body>
 
     <div class="login-container">
-        <h2>IDENTYFIKACJA UŻYTKOWNIKA</h2>
+        <h2 id="form-title">IDENTYFIKACJA UŻYTKOWNIKA</h2>
         
         <div class="input-group">
             <label>NAZWA UŻYTKOWNIKA:</label>
@@ -126,16 +140,39 @@
         <div id="message"></div>
 
         <div class="btn-container">
-            <button onclick="handleLogin()">WEJDŹ DO SYSTEMU</button>
+            <button id="submit-btn" onclick="handleSubmit()">WEJDŹ DO SYSTEMU</button>
         </div>
+
+        <button class="mode-switch" id="switch-btn" onclick="toggleMode()">Nie masz konta? Zarejestruj się</button>
 
         <a href="index.html" class="back-link">&lt;&lt; POWRÓT DO CENTRUM</a>
     </div>
 
 <script>
     const API_URL = 'https://halogensworld.onrender.com';
+    let isRegisterMode = false;
 
-    async function handleLogin() {
+    function toggleMode() {
+        isRegisterMode = !isRegisterMode;
+        const title = document.getElementById('form-title');
+        const submitBtn = document.getElementById('submit-btn');
+        const switchBtn = document.getElementById('switch-btn');
+        const msg = document.getElementById('message');
+        
+        msg.innerText = '';
+
+        if (isRegisterMode) {
+            title.innerText = 'REJESTRACJA NOWEGO KONTA';
+            submitBtn.innerText = 'ZAREJESTRUJ SIĘ';
+            switchBtn.innerText = 'Masz już konto? Zaloguj się';
+        } else {
+            title.innerText = 'IDENTYFIKACJA UŻYTKOWNIKA';
+            submitBtn.innerText = 'WEJDŹ DO SYSTEMU';
+            switchBtn.innerText = 'Nie masz konta? Zarejestruj się';
+        }
+    }
+
+    async function handleSubmit() {
         const user = document.getElementById('username').value.trim();
         const pass = document.getElementById('password').value;
         const msg = document.getElementById('message');
@@ -148,10 +185,11 @@
 
         try {
             msg.style.color = '#00ffcc';
-            msg.innerText = 'Łączenie z systemem...';
+            msg.innerText = 'Przetwarzanie...';
 
-            // Próbujemy się zalogować – bez automatycznej rejestracji w locie
-            let response = await fetch(`${API_URL}/api/login`, {
+            let endpoint = isRegisterMode ? '/api/register' : '/api/login';
+
+            let response = await fetch(`${API_URL}${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user, pass })
@@ -160,16 +198,33 @@
             const data = await response.json();
 
             if (response.ok) {
-                localStorage.setItem('halogen_logged_user', data.user || user);
-                msg.style.color = '#00ffcc';
-                msg.innerText = 'Autoryzacja pomyślna! Przekierowanie...';
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 800);
+                if (isRegisterMode) {
+                    msg.style.color = '#00ffcc';
+                    msg.innerText = 'Rejestracja pomyślna! Trwa logowanie...';
+                    // Po udanej rejestracji logujemy automatycznie
+                    setTimeout(async () => {
+                        let loginResponse = await fetch(`${API_URL}/api/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ user, pass })
+                        });
+                        let loginData = await loginResponse.json();
+                        if (loginResponse.ok) {
+                            localStorage.setItem('halogen_logged_user', loginData.user || user);
+                            window.location.href = 'index.html';
+                        }
+                    }, 800);
+                } else {
+                    localStorage.setItem('halogen_logged_user', data.user || user);
+                    msg.style.color = '#00ffcc';
+                    msg.innerText = 'Autoryzacja pomyślna! Przekierowanie...';
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 800);
+                }
             } else {
-                // Jeśli konto nie istnieje lub dane są błędne, wyświetlamy komunikat i blokujemy wejście
                 msg.style.color = '#ff4444';
-                msg.innerText = data.message || 'Brak takiego użytkownika lub błędne hasło!';
+                msg.innerText = data.message || (isRegisterMode ? 'Błąd rejestracji!' : 'Brak takiego użytkownika lub błędne hasło!');
             }
         } catch (e) {
             msg.style.color = '#ff4444';
