@@ -1,21 +1,13 @@
 import os
 import json
 import hashlib
-from flask import Flask, request, jsonify, session, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, join_room, leave_room, emit
 
 app = Flask(__name__)
-
-# Konfiguracja CORS uwzględniająca ciasteczka i Twoje domeny
-CORS(app, supports_credentials=True, origins=["https://halogensworld.pl", "https://halogensworld.onrender.com", "http://localhost:5000"])
+CORS(app, supports_credentials=True, origins="*")
 app.secret_key = 'halogen_secure_secret_key'
-
-# Wymuszenie bezpiecznych ciasteczek sesji w środowisku produkcyjnym (HTTPS na Renderze)
-app.config.update(
-    SESSION_COOKIE_SECURE=True,
-    SESSION_COOKIE_SAMESITE='None',
-)
 
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
@@ -70,15 +62,17 @@ def api_debug():
         'obecnie_zalogowani': active
     })
 
-@app.route('/api/status', methods=['GET'])
+@app.route('/api/status', methods=['POST', 'GET'])
 def api_status():
-    user = session.get('user')
+    # Pobieramy użytkownika z żądania POST lub nagłówka, aby uniknąć problemów z sesjami ciasteczkowymi
+    data = request.get_json() if request.is_json else {}
+    user = data.get('user') or request.args.get('user')
+    
     if user:
         active = load_json(SESSIONS_FILE, [])
         if user in active:
             return jsonify({'logged': True, 'user': user})
-        else:
-            session.pop('user', None)
+            
     return jsonify({'logged': False, 'user': 'GUEST'})
 
 @app.route('/api/login', methods=['POST'])
@@ -102,7 +96,6 @@ def api_login():
         if username in active:
             return jsonify({'status': 'error', 'message': 'Ten użytkownik jest już zalogowany na innym urządzeniu!'}), 401
         
-        session['user'] = username
         active.append(username)
         save_json(SESSIONS_FILE, active)
         return jsonify({'status': 'success', 'user': username})
@@ -112,9 +105,7 @@ def api_login():
 @app.route('/api/logout', methods=['POST'])
 def api_logout():
     data = request.get_json() or {}
-    username = data.get('user') or session.get('user')
-    if 'user' in session:
-        session.pop('user', None)
+    username = data.get('user')
     if username:
         active = load_json(SESSIONS_FILE, [])
         if username in active:
@@ -174,7 +165,7 @@ def handle_disconnect():
 
 @socketio.on('register_socket')
 def handle_register_socket(data):
-    user = data.get('user') or session.get('user', 'GUEST')
+    user = data.get('user')
     if not user or user == 'GUEST' or user == 'undefined' or user.strip() == '':
         return
     
@@ -187,7 +178,7 @@ def handle_register_socket(data):
 
 @socketio.on('join')
 def on_join(data):
-    user = data.get('user') or session.get('user', 'GUEST')
+    user = data.get('user', 'GUEST')
     room = data.get('room', 'global')
     join_room(room)
     if user != 'GUEST':
@@ -195,7 +186,7 @@ def on_join(data):
 
 @socketio.on('chat_msg')
 def handle_chat_msg(data):
-    user = data.get('user') or session.get('user', 'GUEST')
+    user = data.get('user', 'GUEST')
     room = data.get('room', 'global')
     msg = data.get('msg')
     recipient = data.get('recipient')
