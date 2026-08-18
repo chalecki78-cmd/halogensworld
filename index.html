@@ -6,7 +6,9 @@
     <title>Jetson Hub - System Halogen AI</title>
     <style>
         body { 
-            margin: 0; padding: 0; width: 100vw; height: 100vh; 
+            margin: 0; padding: 0; width: 100vw; 
+            height: 100vh; /* fallback dla starszych przeglądarek */
+            height: 100dvh; /* poprawna wysokość na mobile (uwzględnia chowający się pasek adresu) */
             background: #000;
             font-family: 'Courier New', Courier, monospace; color: #00ffcc; 
             overflow: hidden;
@@ -20,7 +22,8 @@
             top: 0;
             left: 0;
             width: 100vw;
-            height: 100vh;
+            height: 100vh; /* fallback */
+            height: 100dvh; /* poprawna wysokość na mobile */
             background-image: url('IMG/strona_startowa_tlo.png');
             background-repeat: no-repeat;
             background-position: center center;
@@ -30,7 +33,7 @@
         .rotate-hint { display: none; }
         @media (max-width: 1024px) and (orientation: portrait) {
             body > *:not(.rotate-hint):not(#halogen-chat-container) { display: none !important; }
-            .rotate-hint { display: flex; align-items: center; justify-content: center; height: 100vh; text-align: center; color: #00ffcc; padding: 20px; font-size: 14px; }
+            .rotate-hint { display: flex; align-items: center; justify-content: center; height: 100vh; height: 100dvh; text-align: center; color: #00ffcc; padding: 20px; font-size: 14px; }
         }
         
         .top-left-chat-label { position: absolute; top: 25px; left: 35px; border: 1px solid #00ffcc; color: #00ffcc; padding: 3px 8px; font-size: 9px; font-weight: bold; border-radius: 2px; z-index: 100; cursor: pointer; background: rgba(0, 10, 10, 0.85); text-decoration: none; }
@@ -41,7 +44,7 @@
         .auth-btn, .help-btn, .logout-btn, .lang-btn { background: transparent; border: 1px solid #00ffcc; color: #00ffcc; padding: 3px 8px; font-size: 9px; cursor: pointer; border-radius: 2px; }
         .logout-btn { border-color: #ff4444; color: #ff4444; }
         
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #050b0b; border: 2px solid #00ffcc; padding: 25px; width: 320px; border-radius: 6px; }
         
         /* 1. UKŁAD DOMYŚLNY (DUŻE MONITORY / PC) */
@@ -58,13 +61,25 @@
             justify-content: center;
         }
 
-        /* 2. UKŁAD DLA TELEFONÓW I TABLETÓW (Poprawione proporcje i położenie) */
-        @media (max-width: 1024px) {
+        /* 2. UKŁAD DLA TABLETÓW (np. iPad w landscape, szerokość do 1024px, wyższe niż telefon) */
+        @media (max-width: 1024px) and (min-height: 500px) {
             .monitor-screen {
                 top: 55% !important; 
                 left: 35% !important; 
                 width: 45% !important; 
                 height: 14% !important;
+                transform: rotate(5deg) !important;
+            }
+        }
+
+        /* 3. UKŁAD DLA TELEFONÓW W LANDSCAPE (niska wysokość ekranu = typowy telefon położony poziomo) */
+        /* WARTOŚCI PONIŻEJ TRZEBA DOSTROIĆ NA REALNYM TELEFONIE - to punkt startowy, nie finalne liczby */
+        @media (max-width: 1024px) and (max-height: 499px) {
+            .monitor-screen {
+                top: 50% !important;
+                left: 55% !important;
+                width: 35% !important;
+                height: 22% !important;
                 transform: rotate(5deg) !important;
             }
         }
