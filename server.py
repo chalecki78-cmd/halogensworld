@@ -55,10 +55,10 @@ def api_login():
     users = load_json(USERS_FILE, {})
     hashed_pass = hash_password(password)
 
+    # BLOKADA: Jeśli użytkownik nie istnieje, NIE tworzymy go automatycznie, tylko odrzucamy!
     if username not in users:
-        users[username] = hashed_pass
-        save_json(USERS_FILE, users)
-    
+        return jsonify({'status': 'error', 'message': 'Konto nie istnieje. Najpierw się zarejestruj!'}), 401
+
     if users[username] == hashed_pass:
         session['user'] = username
         active = load_json(SESSIONS_FILE, [])
@@ -94,10 +94,11 @@ def api_register():
     username = data.get('user', '').strip()
     password = data.get('pass', '')
     if not username or not password: 
-        return jsonify({'status': 'error'}), 400
+        return jsonify({'status': 'error', 'message': 'Wypełnij pola'}), 400
     users = load_json(USERS_FILE, {})
     if username in users: 
         return jsonify({'status': 'error', 'message': 'exists'})
+    
     users[username] = hash_password(password)
     save_json(USERS_FILE, users)
     return jsonify({'status': 'success'})
