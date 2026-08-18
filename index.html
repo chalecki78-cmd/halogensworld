@@ -100,13 +100,16 @@
             object-fit: cover; 
         }
         
+        /* Okno czatu pozycjonowane w % WEWNĄTRZ .app-viewport - dokładnie tak samo jak .monitor-screen.
+           Ponieważ .app-viewport ma zawsze dokładnie 100vw x 100dvh, procenty poniżej są
+           matematycznie spójne na każdym urządzeniu, bez żadnych sztuczek z vh/dvh w tym miejscu. */
         #halogen-chat-container {
             display: none; 
-            position: fixed; 
-            bottom: 10px; 
-            right: 10px; 
-            width: 420px; 
-            height: 450px; 
+            position: absolute; 
+            bottom: 2%; 
+            right: 1.5%; 
+            width: 22%; 
+            height: 45%; 
             background: #0a0a0a; 
             border: 2px solid #00ffcc; 
             z-index: 9999; 
@@ -115,12 +118,12 @@
 
         @media (max-width: 480px) {
             #halogen-chat-container {
-                width: 96vw;
-                right: 2vw;
-                left: 2vw;
-                top: 10px;
-                bottom: 10px;
-                height: auto; /* wysokość wynika z top+bottom, zawsze dopasowana do realnie widocznego ekranu - nie ucina się przy chowaniu/pokazywaniu paska adresu */
+                width: 96%;
+                left: 2%;
+                right: 2%;
+                top: 2%;
+                bottom: 2%;
+                height: auto; /* wynika z top+bottom w % - zawsze dopasowane do .app-viewport, spójne jak kafelki */
             }
         }
 
@@ -151,14 +154,6 @@
         </div>
     </div>
 
-    <div id="auth-modal" class="modal-overlay" onclick="handleModalOutsideClick(event)">
-        <div id="help-form" class="modal-content" style="display: none;">
-            <h2 id="t-help-title">WSPARCIE SYSTEMOWE</h2>
-            <p id="t-help-desc">Kontakt: Chalecki78@gmail.com</p>
-            <button id="t-understood-btn" onclick="closeModal()">ZROZUMIAŁEM</button>
-        </div>
-    </div>
-
     <div id="halogen-chat-container">
         <div style="background: #00ffcc; color: #000; padding: 8px; font-weight: bold; display: flex; justify-content: space-between; flex-shrink: 0;">
             <span id="chat-title">HALOGEN CHAT</span>
@@ -185,6 +180,14 @@
         <div style="display: flex; padding: 8px; border-top: 1px solid #00ffcc; background: #050b0b; flex-shrink: 0;">
             <input type="text" id="chat-input" placeholder="Wpisz wiadomość..." style="flex: 1; background: #000; border: 1px solid #00ffcc; color: #fff; padding: 6px; font-size: 11px;">
             <button onclick="sendChatMessage()" style="background: #00ffcc; color: #000; border: none; padding: 0 12px; font-weight: bold; cursor: pointer;">OK</button>
+        </div>
+    </div>
+
+    <div id="auth-modal" class="modal-overlay" onclick="handleModalOutsideClick(event)">
+        <div id="help-form" class="modal-content" style="display: none;">
+            <h2 id="t-help-title">WSPARCIE SYSTEMOWE</h2>
+            <p id="t-help-desc">Kontakt: Chalecki78@gmail.com</p>
+            <button id="t-understood-btn" onclick="closeModal()">ZROZUMIAŁEM</button>
         </div>
     </div>
 
