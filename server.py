@@ -80,7 +80,13 @@ def api_logout():
         if username in active:
             active.remove(username)
             save_json(SESSIONS_FILE, active)
+        
+        # Usuwamy z aktywnych połączeń socketowych
+        for sid, uname in list(connected_users.items()):
+            if uname == username:
+                del connected_users[sid]
         broadcast_user_list()
+        
     return jsonify({'status': 'success'})
 
 @app.route('/api/register', methods=['POST'])
@@ -97,10 +103,15 @@ def api_register():
     save_json(USERS_FILE, users)
     return jsonify({'status': 'success'})
 
+# Przechowujemy powiązanie: sid -> username (tylko zweryfikowani użytkownicy)
 connected_users = {}
 
 def broadcast_user_list():
-    users_list = list(connected_users.keys())
+    # Pobieramy wyłącznie unikalne nazwy użytkowników, odrzucając puste, GUEST i undefined
+    users_list = list(set(
+        uname for uname in connected_users.values() 
+        if uname and uname != 'GUEST' and uname != 'undefined' and uname.strip() != ''
+    ))
     socketio.emit('update_user_list', users_list)
 
 @socketio.on('connect')
@@ -109,26 +120,31 @@ def handle_connect():
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    for uname, sid in list(connected_users.items()):
-        if sid == request.sid:
-            del connected_users[uname]
-            break
+    if request.sid in connected_users:
+        del connected_users[request.sid]
     broadcast_user_list()
     print("Klient rozłączył się:", request.sid)
 
 @socketio.on('register_socket')
 def handle_register_socket(data):
     user = data.get('user') or session.get('user', 'GUEST')
-    connected_users[user] = request.sid
+    
+    # Ignorujemy rejestrację GUEST-ów i fałszywych nazw na liście użytkowników online
+    if not user or user == 'GUEST' or user == 'undefined' or user.strip() == '':
+        print(f"Ignorowano rejestrację socketa dla niezalogowanego: {request.sid}")
+        return
+
+    connected_users[request.sid] = user
     broadcast_user_list()
-    print(f"Zarejestrowano socket dla użytkownika: {user} -> SID: {request.sid}")
+    print(f"Zarejestrowano zweryfikowany socket dla użytkownika: {user} -> SID: {request.sid}")
 
 @socketio.on('join')
 def on_join(data):
     user = data.get('user') or session.get('user', 'GUEST')
     room = data.get('room', 'global')
     join_room(room)
-    emit('status', {'msg': f'{user} dołączył do pokoju: {room}'}, room=room)
+    if user != 'GUEST':
+        emit('status', {'msg': f'{user} dołączył do pokoju: {room}'}, room=room)
 
 @socketio.on('chat_msg')
 def handle_chat_msg(data):
@@ -137,15 +153,21 @@ def handle_chat_msg(data):
     msg = data.get('msg')
     recipient = data.get('recipient')
 
-    if not msg:
+    if not msg or user == 'GUEST' or user == 'undefined':
         return
 
     if recipient and recipient != 'global':
-        target_sid = connected_users.get(recipient)
+        # Znajdź target_sid po nazwie użytkownika w connected_users
+        target_sid = None
+        for sid, uname in connected_users.items():
+            if uname == recipient:
+                target_sid = sid
+                break
+
         private_payload = {'user': user, 'msg': msg, 'private': True, 'recipient': recipient}
         if target_sid:
             socketio.emit('new_message', private_payload, room=target_sid)
-        emit('new_message', private_payload)
+        emit('new_message', private_payload) # Wyślij też do nadawcy
     else:
         emit('new_message', {'user': user, 'msg': msg, 'room': room}, room=room)
 
