@@ -60,7 +60,7 @@
         /* 1. UKŁAD DOMYŚLNY (DUŻE MONITORY / PC) */
         .monitor-screen { 
             position: absolute; 
-            top: 43%; 
+            top: 55%; 
             left: 62.5%; 
             width: 24.8%; 
             height: 15%; 
@@ -116,9 +116,11 @@
         @media (max-width: 480px) {
             #halogen-chat-container {
                 width: 96vw;
-                height: 80vh;
                 right: 2vw;
+                left: 2vw;
+                top: 10px;
                 bottom: 10px;
+                height: auto; /* wysokość wynika z top+bottom, zawsze dopasowana do realnie widocznego ekranu - nie ucina się przy chowaniu/pokazywaniu paska adresu */
             }
         }
 
