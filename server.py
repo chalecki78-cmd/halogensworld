@@ -64,7 +64,6 @@ def api_debug():
 
 @app.route('/api/status', methods=['POST', 'GET'])
 def api_status():
-    # Pobieramy użytkownika z żądania POST lub nagłówka, aby uniknąć problemów z sesjami ciasteczkowymi
     data = request.get_json() if request.is_json else {}
     user = data.get('user') or request.args.get('user')
     
