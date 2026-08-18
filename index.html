@@ -356,7 +356,6 @@
             if (event.target.id === 'auth-modal') closeModal();
         }
 
-        // --- KOMUNIKACJA Z SERVER.PY (API) ---
         async function performRegister() {
             const inputVal = document.getElementById('register-username-input').value.trim();
             const passVal = document.getElementById('register-password-input').value;
@@ -448,6 +447,16 @@
             document.getElementById('halogen-chat-container').style.display = 'none';
             window.location.reload();
         }
+
+        // --- AUTOMATYCZNE WYLOGOWANIE PRZY ZAMKNIĘCIU KARTY ---
+        window.addEventListener('beforeunload', function (e) {
+            const currentUser = getCurrentUser();
+            if (currentUser && currentUser !== 'GUEST') {
+                // Wysyła natychmiastowy sygnał wylogowania w tle (nawet przy zamknięciu karty)
+                navigator.sendBeacon('/api/logout', JSON.stringify({ user: currentUser }));
+                localStorage.removeItem('halogen_logged_user');
+            }
+        });
 
         function initChatSocket() {
             if (socket) return;
