@@ -7,8 +7,8 @@
     <style>
         body { 
             margin: 0; padding: 0; width: 100vw; 
-            height: 100vh; /* fallback dla starszych przeglądarek */
-            height: 100dvh; /* poprawna wysokość na mobile (uwzględnia chowający się pasek adresu) */
+            height: 100vh; 
+            height: 100dvh; 
             background: #000;
             font-family: 'Courier New', Courier, monospace; color: #00ffcc; 
             overflow: hidden;
@@ -16,18 +16,13 @@
             position: fixed;
         }
 
-        /* WSPÓLNA WARSTWA TŁA I KAFELKÓW - tło zawsze rozciągnięte na 100% szerokości i 100%
-           wysokości ekranu (celowo zdeformowane, bez zachowania proporcji). Dzięki temu, że
-           .app-viewport ZAWSZE ma dokładnie wymiary 100vw x 100dvh, pozycje % kafelków
-           (.monitor-screen) są matematycznie IDENTYCZNE na każdej rozdzielczości - nie
-           potrzeba żadnych media queries dla pozycji. */
         .app-viewport {
             position: absolute;
             top: 0;
             left: 0;
             width: 100vw;
-            height: 100vh; /* fallback */
-            height: 100dvh; /* poprawna wysokość na mobile - kluczowe dla spójności % */
+            height: 100vh; 
+            height: 100dvh; 
             background-image: url('IMG/strona_startowa_tlo.png');
             background-repeat: no-repeat;
             background-position: center center;
@@ -59,7 +54,6 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #050b0b; border: 2px solid #00ffcc; padding: 25px; width: 320px; border-radius: 6px; }
         
-        /* 1. UKŁAD DOMYŚLNY (DUŻE MONITORY / PC) */
         .monitor-screen { 
             position: absolute; 
             top: 43%; 
@@ -183,7 +177,6 @@
         let socket = null;
         let currentLang = 'PL';
 
-        /* ===== SŁOWNIK TŁUMACZEŃ ===== */
         const translations = {
             PL: {
                 rotateHint: "OBRÓĆ URZĄDZENIE, ABY KONTYNUOWAĆ",
@@ -203,7 +196,8 @@
                 recipientPlaceholder: "Nick odbiorcy",
                 onlineLabel: "ONLINE:",
                 chatInputPlaceholder: "Wpisz wiadomość...",
-                choosePwAlert: "Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!"
+                choosePwAlert: "Wybierz użytkownika z listy po lewej stronie, aby napisać prywatnie!",
+                guestBlockedChat: "Musisz się zalogować, aby pisać na czacie!"
             },
             EN: {
                 rotateHint: "ROTATE YOUR DEVICE TO CONTINUE",
@@ -223,13 +217,13 @@
                 recipientPlaceholder: "Recipient nick",
                 onlineLabel: "ONLINE:",
                 chatInputPlaceholder: "Type a message...",
-                choosePwAlert: "Select a user from the list on the left to send a private message!"
+                choosePwAlert: "Select a user from the list on the left to send a private message!",
+                guestBlockedChat: "You must be logged in to chat!"
             }
         };
 
         function applyLanguage() {
             const t = translations[currentLang];
-
             document.getElementById('t-rotate-hint').textContent = t.rotateHint;
             document.getElementById('t-chat').textContent = t.chatLabel;
             document.getElementById('t-status').textContent = t.status;
@@ -244,7 +238,6 @@
             document.getElementById('recipient-name').placeholder = t.recipientPlaceholder;
             document.getElementById('t-online-label').textContent = t.onlineLabel;
             document.getElementById('chat-input').placeholder = t.chatInputPlaceholder;
-
             updateAccountButton();
         }
 
@@ -252,7 +245,7 @@
             const t = translations[currentLang];
             const loggedUser = localStorage.getItem('halogen_logged_user');
             const loginBtn = document.getElementById('login-trigger-btn');
-            if (loggedUser) {
+            if (loggedUser && loggedUser !== 'GUEST') {
                 loginBtn.textContent = `[ ${t.account}: ${loggedUser} ]`;
             } else {
                 loginBtn.textContent = `[ ${t.account}: ${t.guest} ]`;
@@ -261,11 +254,10 @@
         
         function handleAuthClick(event) {
             const loggedUser = localStorage.getItem('halogen_logged_user');
-            if (loggedUser) {
+            if (loggedUser && loggedUser !== 'GUEST') {
                 event.preventDefault();
                 alert(`Jesteś już zalogowany jako ${loggedUser}.`);
             }
-            // Jeśli nie jest zalogowany, przechodzi normalnie do login.html
         }
         
         function initChatSocket() {
@@ -279,15 +271,22 @@
 
             socket.on('connect', () => {
                 let currentUser = getCurrentUser();
-                socket.emit('register_socket', { user: currentUser });
-                socket.emit('join', { room: 'global', user: currentUser });
+                // Jeśli użytkownik to GUEST, nie rejestrujemy go jako aktywnego usera w bazie online
+                if (currentUser !== 'GUEST') {
+                    socket.emit('register_socket', { user: currentUser });
+                    socket.emit('join', { room: 'global', user: currentUser });
+                }
             });
 
             socket.on('update_user_list', function(users) {
                 const usersListDiv = document.getElementById('online-users-list');
                 usersListDiv.innerHTML = '';
                 let currentUser = getCurrentUser();
-                users.forEach(user => {
+                
+                // Filtrujemy listę, odrzucając puste wpisy, GUESTów oraz powtórzenia
+                let validUsers = users.filter(user => user && user !== 'GUEST' && user !== 'undefined');
+                
+                validUsers.forEach(user => {
                     if (user !== currentUser) {
                         usersListDiv.innerHTML += `<div class="user-item" onclick="startPrivateChat('${user}')" title="Kliknij, aby pisać prywatnie">@ ${user}</div>`;
                     }
@@ -326,7 +325,7 @@
 
         function getCurrentUser() {
             let currentUser = localStorage.getItem('halogen_logged_user');
-            if (!currentUser || currentUser === '') {
+            if (!currentUser || currentUser.trim() === '' || currentUser === 'null') {
                 return 'GUEST';
             }
             return currentUser;
@@ -358,7 +357,7 @@
                     recipientInput.style.display = 'none';
                     recipientInput.value = '';
                     chatTitle.textContent = `${translations[currentLang].chatTitle} (${this.value.toUpperCase()})`;
-                    if (socket) {
+                    if (socket && getCurrentUser() !== 'GUEST') {
                         socket.emit('join', { room: this.value, user: getCurrentUser() });
                     }
                 }
@@ -380,13 +379,19 @@
         }
 
         function sendChatMessage() {
+            let currentUser = getCurrentUser();
+            if (currentUser === 'GUEST') {
+                alert(translations[currentLang].guestBlockedChat);
+                return;
+            }
+
             const input = document.getElementById('chat-input');
             const messageText = input.value.trim();
             const targetSelect = document.getElementById('chat-target').value;
             const recipientInput = document.getElementById('recipient-name');
+            
             if (messageText !== '') {
                 if (!socket) initChatSocket();
-                let currentUser = getCurrentUser();
                 let payload = { msg: messageText, user: currentUser };
                 if (targetSelect === 'pw') {
                     const recipientName = recipientInput.value.trim();
@@ -428,7 +433,8 @@
         function checkLoginStatus() {
             const loggedUser = localStorage.getItem('halogen_logged_user');
             const logoutBtn = document.getElementById('logout-btn');
-            logoutBtn.style.display = loggedUser ? 'inline-block' : 'none';
+            const isLogged = loggedUser && loggedUser !== 'GUEST' && loggedUser !== '';
+            logoutBtn.style.display = isLogged ? 'inline-block' : 'none';
             updateAccountButton();
         }
 
