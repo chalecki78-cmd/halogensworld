@@ -63,7 +63,7 @@
             box-shadow: 0 0 15px #00ffcc;
         }
 
-        /* OKNO LOGOWANIA / REJESTRACJI (UKRYTE DOMYŚLNIE) */
+        /* OKNO LOGOWANIA / REJESTRACJI - DOMYŚLNIE CAŁOWICIE UKRYTE (display: none) */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -238,7 +238,7 @@
     const API_URL = 'https://halogensworld.onrender.com';
     let isRegisterMode = false;
 
-    // Aktualizacja statusu przy starcie (bez otwierania okna)
+    // Tylko odświeżenie tekstu przycisku na podstawie pamięci lokalnej (żadne okno się nie otwiera)
     updateUI();
 
     function updateUI() {
