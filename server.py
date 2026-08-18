@@ -13,15 +13,14 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 USERS_FILE = os.path.join(BASE_DIR, 'users.json')
-SESSIONS_FILE = os.path.join(BASE_DIR, 'active_sessions.json')
+
+# Pamięć sesji w RAMie serwera – stabilna i odporna na restarty dysku Render
+ACTIVE_SESSIONS = set()
 
 def init_storage():
     if not os.path.exists(USERS_FILE):
         with open(USERS_FILE, 'w', encoding='utf-8') as f:
             json.dump({}, f, ensure_ascii=False, indent=4)
-            
-    with open(SESSIONS_FILE, 'w', encoding='utf-8') as f:
-        json.dump([], f, ensure_ascii=False, indent=4)
 
 init_storage()
 
@@ -29,18 +28,18 @@ def hash_password(password):
     salt = "halogen_secure_salt_key_"
     return hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
 
-def load_json(filename, default):
-    if not os.path.exists(filename):
-        return default
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        return {}
     try:
-        with open(filename, 'r', encoding='utf-8') as f:
+        with open(USERS_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
     except:
-        return default
+        return {}
 
-def save_json(filename, data):
-    with open(filename, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+def save_users(users):
+    with open(USERS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(users, f, ensure_ascii=False, indent=4)
 
 @app.route('/')
 def home():
@@ -55,11 +54,10 @@ def serve_static(filename):
 
 @app.route('/api/debug_data', methods=['GET'])
 def api_debug():
-    users = load_json(USERS_FILE, {})
-    active = load_json(SESSIONS_FILE, [])
+    users = load_users()
     return jsonify({
         'wszyscy_zarejestrowani_uzytkownicy': list(users.keys()),
-        'obecnie_zalogowani': active
+        'obecnie_zalogowani': list(ACTIVE_SESSIONS)
     })
 
 @app.route('/api/status', methods=['POST', 'GET'])
@@ -67,10 +65,8 @@ def api_status():
     data = request.get_json() if request.is_json else {}
     user = data.get('user') or request.args.get('user')
     
-    if user:
-        active = load_json(SESSIONS_FILE, [])
-        if user in active:
-            return jsonify({'logged': True, 'user': user})
+    if user and user in ACTIVE_SESSIONS:
+        return jsonify({'logged': True, 'user': user})
             
     return jsonify({'logged': False, 'user': 'GUEST'})
 
@@ -83,20 +79,14 @@ def api_login():
     if not username or not password:
         return jsonify({'status': 'error', 'message': 'Wypełnij pola'}), 400
 
-    users = load_json(USERS_FILE, {})
+    users = load_users()
     hashed_pass = hash_password(password)
 
     if username not in users:
         return jsonify({'status': 'error', 'message': 'Konto nie istnieje. Najpierw się zarejestruj!'}), 401
 
     if users[username] == hashed_pass:
-        active = load_json(SESSIONS_FILE, [])
-        
-        if username in active:
-            return jsonify({'status': 'error', 'message': 'Ten użytkownik jest już zalogowany na innym urządzeniu!'}), 401
-        
-        active.append(username)
-        save_json(SESSIONS_FILE, active)
+        ACTIVE_SESSIONS.add(username)
         return jsonify({'status': 'success', 'user': username})
     
     return jsonify({'status': 'error', 'message': 'Błędne hasło!'}), 401
@@ -105,11 +95,8 @@ def api_login():
 def api_logout():
     data = request.get_json() or {}
     username = data.get('user')
-    if username:
-        active = load_json(SESSIONS_FILE, [])
-        if username in active:
-            active.remove(username)
-            save_json(SESSIONS_FILE, active)
+    if username and username in ACTIVE_SESSIONS:
+        ACTIVE_SESSIONS.remove(username)
         
         for sid, uname in list(connected_users.items()):
             if uname == username:
@@ -126,12 +113,12 @@ def api_register():
     if not username or not password: 
         return jsonify({'status': 'error', 'message': 'Wypełnij pola'}), 400
     
-    users = load_json(USERS_FILE, {})
+    users = load_users()
     if username in users: 
         return jsonify({'status': 'error', 'message': 'exists'})
     
     users[username] = hash_password(password)
-    save_json(USERS_FILE, users)
+    save_users(users)
     return jsonify({'status': 'success'})
 
 connected_users = {}
@@ -154,11 +141,8 @@ def handle_connect():
 @socketio.on('disconnect')
 def handle_disconnect():
     username = connected_users.get(request.sid)
-    if username:
-        active = load_json(SESSIONS_FILE, [])
-        if username in active:
-            active.remove(username)
-            save_json(SESSIONS_FILE, active)
+    if username and username in ACTIVE_SESSIONS:
+        ACTIVE_SESSIONS.remove(username)
         del connected_users[request.sid]
     broadcast_user_list()
 
@@ -168,10 +152,7 @@ def handle_register_socket(data):
     if not user or user == 'GUEST' or user == 'undefined' or user.strip() == '':
         return
     
-    active = load_json(SESSIONS_FILE, [])
-    if user not in active:
-        return
-
+    ACTIVE_SESSIONS.add(user)
     connected_users[request.sid] = user
     broadcast_user_list()
 
