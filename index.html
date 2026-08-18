@@ -304,34 +304,6 @@
             }
         }
         
-        function getRegisteredUsers() {
-            let users = localStorage.getItem('halogen_registered_users_db');
-            if (!users) return {};
-            try {
-                return JSON.parse(users);
-            } catch(e) {
-                return {};
-            }
-        }
-
-        function registerNewUserInDB(username, password) {
-            let users = getRegisteredUsers();
-            let cleanName = username.trim();
-            if (!cleanName || !password) return false;
-            if (users[cleanName]) return false;
-            
-            users[cleanName] = password;
-            localStorage.setItem('halogen_registered_users_db', JSON.stringify(users));
-            return true;
-        }
-
-        function verifyUserCredentials(username, password) {
-            let users = getRegisteredUsers();
-            let cleanName = username.trim();
-            if (!users[cleanName]) return false;
-            return users[cleanName] === password;
-        }
-
         function openAuthModal(type) {
             const modal = document.getElementById('auth-modal');
             const helpForm = document.getElementById('help-form');
@@ -384,11 +356,14 @@
             if (event.target.id === 'auth-modal') closeModal();
         }
 
-        function performRegister() {
+        async function performRegister() {
             const inputVal = document.getElementById('register-username-input').value.trim();
             const passVal = document.getElementById('register-password-input').value;
             const errDiv = document.getElementById('reg-error-msg');
-            
+            const submitBtn = document.querySelector('#register-form button[onclick="performRegister()"]');
+
+            errDiv.textContent = '';
+
             if (!inputVal) {
                 errDiv.textContent = 'Nazwa użytkownika nie może być pusta!';
                 return;
@@ -402,25 +377,39 @@
                 return;
             }
 
-            let users = getRegisteredUsers();
-            if (users[inputVal]) {
-                errDiv.textContent = 'Ten nick jest już zarejestrowany! Wybierz inny.';
-                return;
-            }
+            if (submitBtn) submitBtn.disabled = true;
 
-            if (registerNewUserInDB(inputVal, passVal)) {
-                alert(`Konto "${inputVal}" zostało pomyślnie zarejestrowane! Teraz możesz się zalogować.`);
-                switchLoginView();
-                document.getElementById('auth-username-input').value = inputVal;
-            } else {
-                errDiv.textContent = 'Błąd podczas rejestracji.';
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: inputVal, pass: passVal })
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    alert(`Konto "${inputVal}" zostało pomyślnie zarejestrowane! Teraz możesz się zalogować.`);
+                    switchLoginView();
+                    document.getElementById('auth-username-input').value = inputVal;
+                } else if (data.message === 'exists') {
+                    errDiv.textContent = 'Ten nick jest już zarejestrowany! Wybierz inny.';
+                } else {
+                    errDiv.textContent = data.message || 'Błąd podczas rejestracji.';
+                }
+            } catch (err) {
+                errDiv.textContent = 'Błąd połączenia z serwerem. Spróbuj ponownie.';
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
             }
         }
 
-        function performLogin() {
+        async function performLogin() {
             const inputVal = document.getElementById('auth-username-input').value.trim();
             const passVal = document.getElementById('auth-password-input').value;
             const errDiv = document.getElementById('auth-error-msg');
+            const submitBtn = document.querySelector('#login-form button[onclick="performLogin()"]');
+
+            errDiv.textContent = '';
 
             if (!inputVal) {
                 errDiv.textContent = 'Wpisz swój nick!';
@@ -440,15 +429,29 @@
                 return;
             }
 
-            if (!verifyUserCredentials(inputVal, passVal)) {
-                errDiv.textContent = 'Błąd: Nieprawidłowy nick lub hasło!';
-                return;
-            }
+            if (submitBtn) submitBtn.disabled = true;
 
-            localStorage.setItem('halogen_logged_user', inputVal);
-            closeModal();
-            checkLoginStatus();
-            window.location.reload();
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: inputVal, pass: passVal })
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    localStorage.setItem('halogen_logged_user', data.user);
+                    closeModal();
+                    checkLoginStatus();
+                    window.location.reload();
+                } else {
+                    errDiv.textContent = data.message || 'Błąd logowania.';
+                }
+            } catch (err) {
+                errDiv.textContent = 'Błąd połączenia z serwerem. Spróbuj ponownie.';
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
         }
 
         function initChatSocket() {
@@ -624,7 +627,21 @@
             updateChatButtonLabel();
         }
 
-        function handleLogout() {
+        async function handleLogout() {
+            const currentUser = getCurrentUser();
+
+            if (currentUser !== 'GUEST') {
+                try {
+                    await fetch('/api/logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user: currentUser })
+                    });
+                } catch (err) {
+                    // brak połączenia z serwerem - i tak wylogowujemy lokalnie
+                }
+            }
+
             localStorage.removeItem('halogen_logged_user');
             checkLoginStatus();
             document.getElementById('halogen-chat-container').style.display = 'none';
