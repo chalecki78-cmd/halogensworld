@@ -15,6 +15,17 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 USERS_FILE = os.path.join(BASE_DIR, 'users.json')
 SESSIONS_FILE = os.path.join(BASE_DIR, 'active_sessions.json')
 
+# --- INICJALIZACJA PLIKÓW PRZY STARCIE SERWERA ---
+def init_storage():
+    if not os.path.exists(USERS_FILE):
+        with open(USERS_FILE, 'w', encoding='utf-8') as f:
+            json.dump({}, f, ensure_ascii=False, indent=4)
+    # Po każdym starcie serwera aktywne sesje są czyszczone, ponieważ kontener rusza na nowo
+    with open(SESSIONS_FILE, 'w', encoding='utf-8') as f:
+        json.dump([], f, ensure_ascii=False, indent=4)
+
+init_storage()
+
 def hash_password(password):
     salt = "halogen_secure_salt_key_"
     return hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
@@ -51,7 +62,6 @@ def api_status():
         if user in active:
             return jsonify({'logged': True, 'user': user})
         else:
-            # Sesja wygasła lub została zamknięta
             session.pop('user', None)
     return jsonify({'logged': False, 'user': 'GUEST'})
 
@@ -73,11 +83,9 @@ def api_login():
     if users[username] == hashed_pass:
         active = load_json(SESSIONS_FILE, [])
         
-        # BEZWZGLĘDNA BLOKADA: Sprawdzenie czy użytkownik widnieje jako aktywny
         if username in active:
             return jsonify({'status': 'error', 'message': 'Ten użytkownik jest już zalogowany na innym urządzeniu!'}), 401
         
-        # Przypisanie sesji i natychmiastowy zapis
         session['user'] = username
         active.append(username)
         save_json(SESSIONS_FILE, active)
@@ -111,6 +119,7 @@ def api_register():
     password = data.get('pass', '')
     if not username or not password: 
         return jsonify({'status': 'error', 'message': 'Wypełnij pola'}), 400
+    
     users = load_json(USERS_FILE, {})
     if username in users: 
         return jsonify({'status': 'error', 'message': 'exists'})
@@ -148,7 +157,6 @@ def handle_register_socket(data):
     if not user or user == 'GUEST' or user == 'undefined' or user.strip() == '':
         return
     
-    # Dodatkowa weryfikacja socketowa: jeśli użytkownik nie ma aktywnej sesji w pliku, odrzucamy rejestrację socketu
     active = load_json(SESSIONS_FILE, [])
     if user not in active:
         return
